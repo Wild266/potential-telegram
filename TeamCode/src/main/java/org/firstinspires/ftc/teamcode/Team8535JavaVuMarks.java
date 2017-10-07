@@ -60,17 +60,6 @@ public class Team8535JavaVuMarks extends LinearOpMode {
     //VuMarks
     VuforiaLocalizer vuforia;
 
-    int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-    VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
-
-    //parameters.vuforiaLicenseKey = "Ab01nl7/////AAAAGeQnfaGoXUZ+i+4cRvO5jFNG9p0WO71bT/iVJiyCR32g6mazT1g6HiB2OmYcVTUVAWWGDIMKhNlGGjHAS/MCdmgK9VR4jbeUxBD0HT1xXebg7sD5+o2+4HSKheLgOnGdjVMwuUZK/3pnthEADVlvUZsDtrIxxYKBQEQSTf3uWP6vYFTax3kjPSIczUrmjUh6HhIhEm8NcrP4FgE/IjOr4xABtOU8QK4pdMDSxI5UatrszXVfs5jeUJ1gsciJBhwb95YN3e5Eqp/Mhr0K4iqdfGlPZLSYsm2757vfocnlHXaCM1jaU6jM42f8PR0/FLqZX9nIDSbtj+LAo9ufa6qi5/gnW3Ps3Vm1xpiGr7Tp10WN";
-    //parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
-    //vuforia = ClassFactory.createVuforiaLocalizer(parameters);
-
-    VuforiaTrackables relicTrackables = this.vuforia.loadTrackablesFromAsset("RelicVuMark");
-    VuforiaTrackable relicTemplate = relicTrackables.get(0);
-    relicTemplate.setName("relicVuMarkTemplate"); // can help in debugging; otherwise not necessary
-
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor lf=null;
@@ -81,10 +70,21 @@ public class Team8535JavaVuMarks extends LinearOpMode {
     private DcMotor vacuum=null;
     private DcMotor vacuumRelease=null;
 
-    relicTrackables.activate();
 
     @Override
     public void runOpMode() {
+
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
+
+        parameters.vuforiaLicenseKey = "Ab01nl7/////AAAAGeQnfaGoXUZ+i+4cRvO5jFNG9p0WO71bT/iVJiyCR32g6mazT1g6HiB2OmYcVTUVAWWGDIMKhNlGGjHAS/MCdmgK9VR4jbeUxBD0HT1xXebg7sD5+o2+4HSKheLgOnGdjVMwuUZK/3pnthEADVlvUZsDtrIxxYKBQEQSTf3uWP6vYFTax3kjPSIczUrmjUh6HhIhEm8NcrP4FgE/IjOr4xABtOU8QK4pdMDSxI5UatrszXVfs5jeUJ1gsciJBhwb95YN3e5Eqp/Mhr0K4iqdfGlPZLSYsm2757vfocnlHXaCM1jaU6jM42f8PR0/FLqZX9nIDSbtj+LAo9ufa6qi5/gnW3Ps3Vm1xpiGr7Tp10WN";
+        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
+        vuforia = ClassFactory.createVuforiaLocalizer(parameters);
+
+        VuforiaTrackables relicTrackables = this.vuforia.loadTrackablesFromAsset("RelicVuMark");
+        VuforiaTrackable relicTemplate = relicTrackables.get(0);
+        relicTemplate.setName("relicVuMarkTemplate"); // can help in debugging; otherwise not necessary
+
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
@@ -113,6 +113,8 @@ public class Team8535JavaVuMarks extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
         runtime.reset();
+
+        relicTrackables.activate();
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
