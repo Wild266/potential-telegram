@@ -50,14 +50,18 @@ import com.qualcomm.robotcore.util.Range;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Basic: Linear OpMode", group="Linear Opmode")
-@Disabled
-public class BasicOpMode_Linear extends LinearOpMode {
+@TeleOp(name="JavaTeleOp", group="Linear Opmode")
+public class Team8535JavaTeleOp extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor leftDrive = null;
-    private DcMotor rightDrive = null;
+    private DcMotor lf=null;
+    private DcMotor rf=null;
+    private DcMotor lb=null;
+    private DcMotor rb=null;
+
+    private DcMotor vacuum=null;
+    private DcMotor vacuumRelease=null;
 
     @Override
     public void runOpMode() {
@@ -67,13 +71,20 @@ public class BasicOpMode_Linear extends LinearOpMode {
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-        leftDrive  = hardwareMap.get(DcMotor.class, "left_drive");
-        rightDrive = hardwareMap.get(DcMotor.class, "right_drive");
+        lf  = hardwareMap.get(DcMotor.class, "lf");
+        rf  = hardwareMap.get(DcMotor.class, "rf");
+        lb  = hardwareMap.get(DcMotor.class, "lb");
+        rb  = hardwareMap.get(DcMotor.class, "rb");
+
+        vacuum = hardwareMap.get(DcMotor.class, "vacuum");
+        vacuumRelease  = hardwareMap.get(DcMotor.class, "release");
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
-        leftDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightDrive.setDirection(DcMotor.Direction.REVERSE);
+        lf.setDirection(DcMotor.Direction.REVERSE);
+        rf.setDirection(DcMotor.Direction.FORWARD);
+        lb.setDirection(DcMotor.Direction.REVERSE);
+        rb.setDirection(DcMotor.Direction.FORWARD);
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
@@ -96,14 +107,22 @@ public class BasicOpMode_Linear extends LinearOpMode {
             leftPower    = Range.clip(drive + turn, -1.0, 1.0) ;
             rightPower   = Range.clip(drive - turn, -1.0, 1.0) ;
 
+            double vpower = gamepad2.right_stick_y;
+            double rpower = gamepad2.right_stick_x;
+
+            vacuum.setPower(vpower);
+            vacuumRelease.setPower(rpower);
+
             // Tank Mode uses one stick to control each wheel.
             // - This requires no math, but it is hard to drive forward slowly and keep straight.
             // leftPower  = -gamepad1.left_stick_y ;
             // rightPower = -gamepad1.right_stick_y ;
 
             // Send calculated power to wheels
-            leftDrive.setPower(leftPower);
-            rightDrive.setPower(rightPower);
+            lf.setPower(leftPower);
+            lb.setPower(leftPower);
+            rf.setPower(rightPower);
+            rb.setPower(rightPower);
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
