@@ -68,7 +68,7 @@ public class Team8535JavaVuMarks extends LinearOpMode {
     private DcMotor rb=null;
 
     private DcMotor vacuum=null;
-    private DcMotor vacuumRelease=null;
+    private DcMotor vacuumRelease=null; //this will be eliminated or change to standard servo
 
     private static boolean SHOW_CAMERA=true; //whether to show the camera on the phone screen
 
@@ -84,20 +84,16 @@ public class Team8535JavaVuMarks extends LinearOpMode {
         }
 
         parameters.vuforiaLicenseKey = "Ab01nl7/////AAAAGeQnfaGoXUZ+i+4cRvO5jFNG9p0WO71bT/iVJiyCR32g6mazT1g6HiB2OmYcVTUVAWWGDIMKhNlGGjHAS/MCdmgK9VR4jbeUxBD0HT1xXebg7sD5+o2+4HSKheLgOnGdjVMwuUZK/3pnthEADVlvUZsDtrIxxYKBQEQSTf3uWP6vYFTax3kjPSIczUrmjUh6HhIhEm8NcrP4FgE/IjOr4xABtOU8QK4pdMDSxI5UatrszXVfs5jeUJ1gsciJBhwb95YN3e5Eqp/Mhr0K4iqdfGlPZLSYsm2757vfocnlHXaCM1jaU6jM42f8PR0/FLqZX9nIDSbtj+LAo9ufa6qi5/gnW3Ps3Vm1xpiGr7Tp10WN";
-        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK;
+        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK; //use the back camera for VuForia
         vuforia = ClassFactory.createVuforiaLocalizer(parameters);
 
         VuforiaTrackables relicTrackables = this.vuforia.loadTrackablesFromAsset("RelicVuMark");
         VuforiaTrackable relicTemplate = relicTrackables.get(0);
-        relicTemplate.setName("relicVuMarkTemplate"); // can help in debugging; otherwise not necessary
+        relicTemplate.setName("relicVuMarkTemplate");
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
 
-        RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
-        if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
-            telemetry.addData("VuMark", "%s visible", vuMark);
-        }
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
@@ -125,56 +121,44 @@ public class Team8535JavaVuMarks extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            // Setup a variable for each drive wheel to save power level for telemetry
-            double leftPower;
-            double rightPower;
+            if (gamepad1.y) { //stop and look for vumarks if Y key is down
 
-            // Choose to drive using either Tank Mode, or POV Mode
-            // Comment out the method that's not used.  The default below is POV.
-            double r = Math.sqrt(gamepad1.left_stick_y *gamepad1.left_stick_y + gamepad1.left_stick_x * gamepad1.left_stick_x);
-            double robotAngle = Math.atan2(-1 * gamepad1.left_stick_x, gamepad1.left_stick_y) - Math.PI / 4;
-            double rightX = -1 * gamepad1.right_stick_x;
-            final double v1 = r * Math.cos(robotAngle) + rightX;
-            final double v2 = r * Math.sin(robotAngle) - rightX;
-            final double v3 = r * Math.sin(robotAngle) + rightX;
-            final double v4 = r * Math.cos(robotAngle) - rightX;
+                RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
+                if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
+                    telemetry.addData("VuMark", "%s visible", vuMark);
+                }
 
-            lf.setPower(v1);
-            rf.setPower(v2);
-            lb.setPower(v3);
-            rb.setPower(v4);
-            // POV Mode uses left stick to go forward, and right stick to turn.
-            // - This uses basic math to combine motions and is easier to drive straight.
-           /* double drive = -gamepad1.left_stick_y;
-            double turn  =  gamepad1.right_stick_x;
-            leftPower    = Range.clip(drive + turn, -1.0, 1.0) ;
-            rightPower   = Range.clip(drive - turn, -1.0, 1.0) ;
-            */
+            } else {
 
-            double vpower = gamepad2.right_stick_y;
-            double rpower = gamepad2.right_stick_x;
+                double r = Math.sqrt(gamepad1.left_stick_y * gamepad1.left_stick_y + gamepad1.left_stick_x * gamepad1.left_stick_x);
+                double robotAngle = Math.atan2(-1 * gamepad1.left_stick_x, gamepad1.left_stick_y) - Math.PI / 4;
+                double rightX = -1 * gamepad1.right_stick_x;
+                final double v1 = r * Math.cos(robotAngle) + rightX;
+                final double v2 = r * Math.sin(robotAngle) - rightX;
+                final double v3 = r * Math.sin(robotAngle) + rightX;
+                final double v4 = r * Math.cos(robotAngle) - rightX;
 
-            vacuum.setPower(vpower);
-            vacuumRelease.setPower(rpower);
+                double comp1=r*Math.cos(robotAngle); //look at hypothesis that turn component overwhelms vector component
+                double comp2=rightX;
 
-            // Tank Mode uses one stick to control each wheel.
-            // - This requires no math, but it is hard to drive forward slowly and keep straight.
-            // leftPower  = -gamepad1.left_stick_y ;
-            // rightPower = -gamepad1.right_stick_y ;
+                telemetry.addData("Speed/Angle","Speed=%.2f Angle=%.2f",r,robotAngle);
+                telemetry.addData("Comp1/Comp2","Comp1=%.2f Comp2=%.2f",comp1,comp2);
 
-            // Send calculated power to wheels
-            /* lf.setPower(leftPower);
-            lb.setPower(leftPower);
-            rf.setPower(rightPower);
-            rb.setPower(rightPower);
-            */
+                lf.setPower(v1);
+                rf.setPower(v2);
+                lb.setPower(v3);
+                rb.setPower(v4);
 
-            // Show the elapsed game time and wheel power.
+                double vpower = gamepad2.right_stick_y;
+                double rpower = gamepad2.right_stick_x;
+
+                vacuum.setPower(vpower);
+                vacuumRelease.setPower(rpower);
+            }
+
+            // Show the elapsed game time
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            //telemetry.addData("Motors", "left (%.2f), right (%.2f)", leftPower, rightPower);
             telemetry.update();
         }
     }
 }
-
-//swap x and y (want leftx to be upy AND rightx to be downy)
