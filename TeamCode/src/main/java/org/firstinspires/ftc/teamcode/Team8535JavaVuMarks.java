@@ -71,6 +71,7 @@ public class Team8535JavaVuMarks extends LinearOpMode {
     private DcMotor vacuumRelease=null; //this will be eliminated or change to standard servo
 
     private static boolean SHOW_CAMERA=true; //whether to show the camera on the phone screen
+    private static boolean JOYSTICK_SCALING=true; //whether to scale joystick values by cubing value (more precision for small movements)
 
     @Override
     public void runOpMode() {
@@ -130,9 +131,19 @@ public class Team8535JavaVuMarks extends LinearOpMode {
 
             } else {
 
-                double r = Math.sqrt(gamepad1.left_stick_y * gamepad1.left_stick_y + gamepad1.left_stick_x * gamepad1.left_stick_x);
-                double robotAngle = Math.atan2(-1 * gamepad1.left_stick_x, gamepad1.left_stick_y) - Math.PI / 4;
-                double rightX = -1 * gamepad1.right_stick_x;
+                double lsy=gamepad1.left_stick_y;
+                double lsx=gamepad1.left_stick_x;
+                double rsx=gamepad1.right_stick_x;
+
+                if (JOYSTICK_SCALING) {
+                    lsy=Math.pow(lsy,3.0);
+                    lsx=Math.pow(lsx,3.0);
+                    rsx=Math.pow(rsx,3.0);
+                }
+
+                double r = Math.sqrt(lsy*lsy+lsx*lsx);
+                double robotAngle = Math.atan2(-1*lsx,lsy) - Math.PI / 4;
+                double rightX = -1 * rsx;
                 final double v1 = r * Math.cos(robotAngle) + rightX;
                 final double v2 = r * Math.sin(robotAngle) - rightX;
                 final double v3 = r * Math.sin(robotAngle) + rightX;
