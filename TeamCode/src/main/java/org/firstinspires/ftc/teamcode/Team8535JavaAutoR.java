@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -54,8 +55,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="JavaVuMarks", group="Linear Opmode")
-public class Team8535JavaVuMarks extends LinearOpMode {
+@Autonomous(name="JavaAutoR", group="Autonomous")
+public class Team8535JavaAutoR extends LinearOpMode {
 
     //VuMarks
     VuforiaLocalizer vuforia;
@@ -120,20 +121,17 @@ public class Team8535JavaVuMarks extends LinearOpMode {
         relicTrackables.activate();
 
         // run until the end of the match (driver presses STOP)
+        double time = 0;
         while (opModeIsActive()) {
-
-            if (gamepad1.y) { //stop and look for vumarks if Y key is down
-
                 RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
-                if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
-                    telemetry.addData("VuMark", "%s visible", vuMark);
+                while (vuMark == RelicRecoveryVuMark.UNKNOWN) {
+                    vuMark = RelicRecoveryVuMark.from(relicTemplate);
                 }
-
-            } else {
-
-                double lsy=gamepad1.left_stick_y;
-                double lsx=gamepad1.left_stick_x;
-                double rsx=gamepad1.right_stick_x;
+                telemetry.addData("VuMark", "%s visible", vuMark);
+                time = runtime.milliseconds();
+                double lsy = 0;
+                double lsx= -1;
+                double rsx= 0;
 
                 if (JOYSTICK_SCALING) {
                     lsy=Math.pow(lsy,5.0);
@@ -159,14 +157,10 @@ public class Team8535JavaVuMarks extends LinearOpMode {
                 rf.setPower(v2);
                 lb.setPower(v3);
                 rb.setPower(v4);
+                time = runtime.milliseconds();
 
-                double vpower = gamepad2.right_stick_y;
-                double rpower = gamepad2.right_stick_x;
-
-                vacuum.setPower(vpower);
-                vacuumRelease.setPower(rpower);
-            }
-
+                while ((runtime.milliseconds()- time) < 1000){
+                }
             // Show the elapsed game time
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.update();
