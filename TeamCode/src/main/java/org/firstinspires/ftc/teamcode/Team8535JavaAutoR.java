@@ -41,6 +41,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 /**
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
@@ -73,6 +76,46 @@ public class Team8535JavaAutoR extends LinearOpMode {
 
     private static boolean SHOW_CAMERA=true; //whether to show the camera on the phone screen
     private static boolean JOYSTICK_SCALING=true; //whether to scale joystick values by cubing value (more precision for small movements)
+
+    private static final int STATE_START=0; //at start of the run
+    private static final int STATE_LOOKING=1; //actively looking for the vumark
+    private static final int STATE_MOVING=2; //moving to cryptobox
+    private static final int STATE_AT_CRYPTOBOX=3; //at cryptobox
+
+    private static String[] stateNames={"Starting","Looking","Moving","At CryptoBox"}; //state names for telemetry
+
+    private int state; //the current state our robot is in
+    RelicRecoveryVuMark vuMark; //currently detect vuMark
+
+    private static Map<RelicRecoveryVuMark,Integer> distMap=new HashMap<RelicRecoveryVuMark,Integer>();
+
+    /**
+     * Set motors for a mecanum move
+     * @param lsx left stick x (left/right)
+     * @param lsy left stick y (front/back)
+     * @param rsx right stick x (rotation)
+     */
+    private void mecanumMove(double lsx,double lsy,double rsx) {
+
+        if (JOYSTICK_SCALING) {
+            lsy=Math.pow(lsy,5.0);
+            lsx=Math.pow(lsx,5.0);
+            rsx=Math.pow(rsx,5.0);
+        }
+
+        double r = Math.sqrt(lsy*lsy+lsx*lsx);
+        double robotAngle = Math.atan2(-1*lsx,lsy) - Math.PI / 4;
+        double rightX = -1 * rsx;
+        final double v1 = r * Math.cos(robotAngle) + rightX;
+        final double v2 = r * Math.sin(robotAngle) - rightX;
+        final double v3 = r * Math.sin(robotAngle) + rightX;
+        final double v4 = r * Math.cos(robotAngle) - rightX;
+
+        lf.setPower(v1);
+        rf.setPower(v2);
+        lb.setPower(v3);
+        rb.setPower(v4);
+    }
 
     @Override
     public void runOpMode() {
@@ -107,8 +150,6 @@ public class Team8535JavaAutoR extends LinearOpMode {
         vacuum = hardwareMap.get(DcMotor.class, "vacuum");
         vacuumRelease  = hardwareMap.get(DcMotor.class, "release");
 
-        // Most robots need the motor on one side to be reversed to drive forward
-        // Reverse the motor that runs backwards when connected directly to the battery
         lf.setDirection(DcMotor.Direction.REVERSE);
         rf.setDirection(DcMotor.Direction.FORWARD);
         lb.setDirection(DcMotor.Direction.REVERSE);
@@ -120,47 +161,43 @@ public class Team8535JavaAutoR extends LinearOpMode {
 
         relicTrackables.activate();
 
-        // run until the end of the match (driver presses STOP)
-        double time = 0;
+        double time = 0; //move timer
+
+        distMap.put(RelicRecoveryVuMark.LEFT,1000);
+        distMap.put(RelicRecoveryVuMark.CENTER,1500);
+        distMap.put(RelicRecoveryVuMark.RIGHT,2000);
+
+        state=STATE_START; //in the start state
+
         while (opModeIsActive()) {
-                RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
-                while (vuMark == RelicRecoveryVuMark.UNKNOWN) {
+
+            telemetry.addData("State",stateNames[state]); //echo the state we're in
+
+            //use a switch statement to take action based on the state we're in
+            switch(state) {
+                case STATE_START:
+                    state=STATE_LOOKING; //start looking for the VuMark
+                    break;
+                case STATE_LOOKING:
                     vuMark = RelicRecoveryVuMark.from(relicTemplate);
-                }
-                telemetry.addData("VuMark", "%s visible", vuMark);
-                time = runtime.milliseconds();
-                double lsy = 0;
-                double lsx= -1;
-                double rsx= 0;
+                    if (vuMark!=RelicRecoveryVuMark.UNKNOWN) {
+                        telemetry.addData("VuMark", "%s visible", vuMark);
+                        time = runtime.milliseconds();
+                        mecanumMove(-1,0,0);
+                        state=STATE_MOVING; //we're now moving
+                    }
+                    break;
+                case STATE_MOVING:
+                    telemetry.addData("Moving", "%s units", distMap.get(vuMark));
+                    if ((runtime.milliseconds()-time)>distMap.get(vuMark)) {
+                        state=STATE_AT_CRYPTOBOX; //after a second were at cryptobox?
+                    }
+                    break;
+                case STATE_AT_CRYPTOBOX:
+                    mecanumMove(0,0,0); //stop
+                    break;
+            }
 
-                if (JOYSTICK_SCALING) {
-                    lsy=Math.pow(lsy,5.0);
-                    lsx=Math.pow(lsx,5.0);
-                    rsx=Math.pow(rsx,5.0);
-                }
-
-                double r = Math.sqrt(lsy*lsy+lsx*lsx);
-                double robotAngle = Math.atan2(-1*lsx,lsy) - Math.PI / 4;
-                double rightX = -1 * rsx;
-                final double v1 = r * Math.cos(robotAngle) + rightX;
-                final double v2 = r * Math.sin(robotAngle) - rightX;
-                final double v3 = r * Math.sin(robotAngle) + rightX;
-                final double v4 = r * Math.cos(robotAngle) - rightX;
-
-                double comp1=r*Math.cos(robotAngle); //look at hypothesis that turn component overwhelms vector component
-                double comp2=rightX;
-
-                telemetry.addData("Speed/Angle","Speed=%.2f Angle=%.2f",r,robotAngle);
-                telemetry.addData("Comp1/Comp2","Comp1=%.2f Comp2=%.2f",comp1,comp2);
-
-                lf.setPower(v1);
-                rf.setPower(v2);
-                lb.setPower(v3);
-                rb.setPower(v4);
-                time = runtime.milliseconds();
-
-                while ((runtime.milliseconds()- time) < 1000){
-                }
             // Show the elapsed game time
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.update();
