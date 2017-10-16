@@ -163,9 +163,9 @@ public class Team8535JavaAutoR extends LinearOpMode {
 
         double time = 0; //move timer
 
-        distMap.put(RelicRecoveryVuMark.LEFT,1000);
-        distMap.put(RelicRecoveryVuMark.CENTER,1500);
-        distMap.put(RelicRecoveryVuMark.RIGHT,2000);
+        distMap.put(RelicRecoveryVuMark.LEFT,2500);
+        distMap.put(RelicRecoveryVuMark.CENTER,2000);
+        distMap.put(RelicRecoveryVuMark.RIGHT,1500);
 
         state=STATE_START; //in the start state
 
