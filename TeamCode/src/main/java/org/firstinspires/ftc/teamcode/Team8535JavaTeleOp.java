@@ -90,6 +90,11 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
+        lf.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER); //reset encoders
+        rf.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        lb.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rb.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
@@ -123,6 +128,13 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             lb.setPower(leftPower);
             rf.setPower(rightPower);
             rb.setPower(rightPower);
+
+            int lfpos=lf.getCurrentPosition(); //show positions to help with auto mode
+            int rfpos=rf.getCurrentPosition();
+            int lbpos=lb.getCurrentPosition();
+            int rbpos=rb.getCurrentPosition();
+
+            telemetry.addData("Positions","lf=%.2f rf=%.2f lb=%.2f rb=%.2f",lfpos,rfpos,lbpos,rbpos);
 
             // Show the elapsed game time and wheel power.
             telemetry.addData("Status", "Run Time: " + runtime.toString());
