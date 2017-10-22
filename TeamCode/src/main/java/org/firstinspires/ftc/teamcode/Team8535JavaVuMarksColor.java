@@ -60,7 +60,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="JavaVuMarks", group="Linear Opmode")
+@TeleOp(name="JavaVuMarksColor", group="Linear Opmode")
 public class Team8535JavaVuMarksColor extends LinearOpMode {
 
         //VuMarks
@@ -76,8 +76,8 @@ public class Team8535JavaVuMarksColor extends LinearOpMode {
         private DcMotor lb = null;
         private DcMotor rb = null;
 
-        private DcMotor vacuum = null;
-        private DcMotor vacuumRelease = null; //this will be eliminated or change to standard servo
+       // private DcMotor vacuum = null;
+        //private DcMotor vacuumRelease = null; //this will be eliminated or change to standard servo
 
         private static boolean SHOW_CAMERA = true; //whether to show the camera on the phone screen
         private static boolean JOYSTICK_SCALING = true; //whether to scale joystick values by cubing value (more precision for small movements)
@@ -113,8 +113,8 @@ public class Team8535JavaVuMarksColor extends LinearOpMode {
             lb = hardwareMap.get(DcMotor.class, "lb");
             rb = hardwareMap.get(DcMotor.class, "rb");
 
-            vacuum = hardwareMap.get(DcMotor.class, "vacuum");
-            vacuumRelease = hardwareMap.get(DcMotor.class, "release");
+            //vacuum = hardwareMap.get(DcMotor.class, "vacuum");
+            //vacuumRelease = hardwareMap.get(DcMotor.class, "release");
 
             // Most robots need the motor on one side to be reversed to drive forward
             // Reverse the motor that runs backwards when connected directly to the battery
@@ -141,13 +141,50 @@ public class Team8535JavaVuMarksColor extends LinearOpMode {
 
             // run until the end of the match (driver presses STOP)
             while (opModeIsActive()) {
+                if (colorSensor instanceof SwitchableLight) {
+                    ((SwitchableLight) colorSensor).enableLight(true);
+                }
+                NormalizedRGBA colors = colorSensor.getNormalizedColors();
+                Color.colorToHSV(colors.toColor(), hsvValues);
+                telemetry.addLine()
+                        .addData("H", "%.3f", hsvValues[0])
+                        .addData("S", "%.3f", hsvValues[1])
+                        .addData("V", "%.3f", hsvValues[2]);
+                telemetry.addLine()
+                        .addData("a", "%.3f", colors.alpha)
+                        .addData("r", "%.3f", colors.red)
+                        .addData("g", "%.3f", colors.green)
+                        .addData("b", "%.3f", colors.blue);
+
+                int color = colors.toColor();
+                telemetry.addLine("raw Android color: ")
+                        .addData("a", "%02x", Color.alpha(color))
+                        .addData("r", "%02x", Color.red(color))
+                        .addData("g", "%02x", Color.green(color))
+                        .addData("b", "%02x", Color.blue(color));
+
+                float max = Math.max(Math.max(Math.max(colors.red, colors.green), colors.blue), colors.alpha);
+                colors.red /= max;
+                colors.green /= max;
+                colors.blue /= max;
+                color = colors.toColor();
+
+                telemetry.addLine("normalized color:  ")
+                        .addData("a", "%02x", Color.alpha(color))
+                        .addData("r", "%02x", Color.red(color))
+                        .addData("g", "%02x", Color.green(color))
+                        .addData("b", "%02x", Color.blue(color));
+                //telemetry.update();
+
+                Color.RGBToHSV(Color.red(color), Color.green(color), Color.blue(color), hsvValues);
 
                 if (gamepad1.y) { //stop and look for vumarks if Y key is down
                     RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
                     if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
                         telemetry.addData("VuMark", "%s visible", vuMark);
                     }
-                } else if (gamepad1.x) { //stop and look for vumarks if X key is down
+                } else if (gamepad1.x) { //stop and look for vumarks if X key is down\
+                    /*
                     if (colorSensor instanceof SwitchableLight) {
                         ((SwitchableLight) colorSensor).enableLight(true);
                     }
@@ -184,7 +221,7 @@ public class Team8535JavaVuMarksColor extends LinearOpMode {
                     telemetry.update();
 
                     Color.RGBToHSV(Color.red(color), Color.green(color), Color.blue(color), hsvValues);
-
+                    */
                 } else {
 
                     double lsy = gamepad1.left_stick_y;
@@ -219,8 +256,8 @@ public class Team8535JavaVuMarksColor extends LinearOpMode {
                     double vpower = gamepad2.right_stick_y;
                     double rpower = gamepad2.right_stick_x;
 
-                    vacuum.setPower(vpower);
-                    vacuumRelease.setPower(rpower);
+                    //vacuum.setPower(vpower);
+                    //vacuumRelease.setPower(rpower);
                 }
 
                 int lfpos = lf.getCurrentPosition(); //show positions to help with auto mode

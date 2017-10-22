@@ -54,29 +54,29 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="JavaVuMarks", group="Linear Opmode")
-public class Team8535JavaVuMarks extends LinearOpMode {
+@TeleOp(name="JavaMotorTest", group="Linear Opmode")
+public class Team8535JavaMotorTest extends LinearOpMode {
 
     //VuMarks
     VuforiaLocalizer vuforia;
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor lf=null;
-    private DcMotor rf=null;
-    private DcMotor lb=null;
-    private DcMotor rb=null;
+    private DcMotor lf = null;
+    private DcMotor rf = null;
+    private DcMotor lb = null;
+    private DcMotor rb = null;
 
     //private DcMotor vacuum=null;
     //private DcMotor vacuumRelease=null; //this will be eliminated or change to standard servo
 
-    private static boolean SHOW_CAMERA=true; //whether to show the camera on the phone screen
-    private static boolean JOYSTICK_SCALING=true; //whether to scale joystick values by cubing value (more precision for small movements)
+    private static boolean SHOW_CAMERA = true; //whether to show the camera on the phone screen
+    private static boolean JOYSTICK_SCALING = true; //whether to scale joystick values by cubing value (more precision for small movements)
 
     @Override
     public void runOpMode() {
 
-        VuforiaLocalizer.Parameters parameters=null;
+        VuforiaLocalizer.Parameters parameters = null;
         if (SHOW_CAMERA) {
             int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
             parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
@@ -98,10 +98,10 @@ public class Team8535JavaVuMarks extends LinearOpMode {
         // Initialize the hardware variables. Note that the strings used here as parameters
         // to 'get' must correspond to the names assigned during the robot configuration
         // step (using the FTC Robot Controller app on the phone).
-        lf  = hardwareMap.get(DcMotor.class, "lf");
-        rf  = hardwareMap.get(DcMotor.class, "rf");
-        lb  = hardwareMap.get(DcMotor.class, "lb");
-        rb  = hardwareMap.get(DcMotor.class, "rb");
+        lf = hardwareMap.get(DcMotor.class, "lf");
+        rf = hardwareMap.get(DcMotor.class, "rf");
+        lb = hardwareMap.get(DcMotor.class, "lb");
+        rb = hardwareMap.get(DcMotor.class, "rb");
 
         //vacuum = hardwareMap.get(DcMotor.class, "vacuum");
         //vacuumRelease  = hardwareMap.get(DcMotor.class, "release");
@@ -132,14 +132,31 @@ public class Team8535JavaVuMarks extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
+            if (gamepad1.x) { //stop and look for vumarks if X key is down
+                lf.setPower(gamepad1.left_stick_x);
+
+            }
+
             if (gamepad1.y) { //stop and look for vumarks if Y key is down
+                rf.setPower(gamepad1.left_stick_x);
 
-                RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
-                if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
-                    telemetry.addData("VuMark", "%s visible", vuMark);
-                }
+            }
 
-            } else {
+            if (gamepad1.b) { //stop and look for vumarks if B key is down
+                rb.setPower(gamepad1.right_stick_x);
+
+            }
+
+            if (gamepad1.a) { //stop and look for vumarks if A key is down
+                lb.setPower(gamepad1.right_stick_x);
+            }
+        }
+
+    }
+
+}
+
+        /*else {
 
                 double lsy=gamepad1.left_stick_y;
                 double lsx=gamepad1.left_stick_x;
@@ -190,3 +207,4 @@ public class Team8535JavaVuMarks extends LinearOpMode {
         }
     }
 }
+*/
