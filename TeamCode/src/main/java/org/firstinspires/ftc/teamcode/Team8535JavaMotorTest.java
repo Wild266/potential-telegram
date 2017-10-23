@@ -143,12 +143,12 @@ public class Team8535JavaMotorTest extends LinearOpMode {
             }
 
             if (gamepad1.b) { //stop and look for vumarks if B key is down
-                rb.setPower(gamepad1.right_stick_x);
+                rb.setPower(gamepad1.left_stick_x);
 
             }
 
             if (gamepad1.a) { //stop and look for vumarks if A key is down
-                lb.setPower(gamepad1.right_stick_x);
+                lb.setPower(gamepad1.left_stick_x);
             }
         }
 
