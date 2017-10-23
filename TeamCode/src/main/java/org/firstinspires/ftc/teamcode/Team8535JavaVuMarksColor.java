@@ -31,13 +31,9 @@ package org.firstinspires.ftc.teamcode;
 
 import android.graphics.Color;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-import com.qualcomm.robotcore.hardware.SwitchableLight;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -45,7 +41,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 
 /**
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
@@ -67,7 +66,7 @@ public class Team8535JavaVuMarksColor extends LinearOpMode {
         VuforiaLocalizer vuforia;
 
         // Declare OpMode members.
-        NormalizedColorSensor colorSensor;
+        ColorSensor colorSensor;
         float[] hsvValues = new float[3];
         final float values[] = hsvValues;
         private ElapsedTime runtime = new ElapsedTime();
@@ -84,6 +83,12 @@ public class Team8535JavaVuMarksColor extends LinearOpMode {
 
         @Override
         public void runOpMode() {
+
+            boolean bLedOn = true;
+            float hsvValues[] = {0F,0F,0F};
+
+            // values is a reference to the hsvValues array.
+            final float values[] = hsvValues;
 
             VuforiaLocalizer.Parameters parameters = null;
             if (SHOW_CAMERA) {
@@ -107,11 +112,13 @@ public class Team8535JavaVuMarksColor extends LinearOpMode {
             // Initialize the hardware variables. Note that the strings used here as parameters
             // to 'get' must correspond to the names assigned during the robot configuration
             // step (using the FTC Robot Controller app on the phone).
-            colorSensor = hardwareMap.get(NormalizedColorSensor.class, "sensor_color");
+            colorSensor = hardwareMap.get(ColorSensor.class, "sensor_color");
             lf = hardwareMap.get(DcMotor.class, "lf");
             rf = hardwareMap.get(DcMotor.class, "rf");
             lb = hardwareMap.get(DcMotor.class, "lb");
             rb = hardwareMap.get(DcMotor.class, "rb");
+
+            colorSensor.enableLed(bLedOn);
 
             //vacuum = hardwareMap.get(DcMotor.class, "vacuum");
             //vacuumRelease = hardwareMap.get(DcMotor.class, "release");
@@ -141,6 +148,17 @@ public class Team8535JavaVuMarksColor extends LinearOpMode {
 
             // run until the end of the match (driver presses STOP)
             while (opModeIsActive()) {
+                Color.RGBToHSV(colorSensor.red() * 8, colorSensor.green() * 8, colorSensor.blue() * 8, hsvValues);
+
+                // send the info back to driver station using telemetry function.
+                telemetry.addData("LED", bLedOn ? "On" : "Off");
+                telemetry.addData("Clear", colorSensor.alpha());
+                telemetry.addData("Red  ", colorSensor.red());
+                telemetry.addData("Green", colorSensor.green());
+                telemetry.addData("Blue ", colorSensor.blue());
+                telemetry.addData("Hue", hsvValues[0]);
+
+                /*
                 if (colorSensor instanceof SwitchableLight) {
                     ((SwitchableLight) colorSensor).enableLight(true);
                 }
@@ -177,7 +195,7 @@ public class Team8535JavaVuMarksColor extends LinearOpMode {
                 //telemetry.update();
 
                 Color.RGBToHSV(Color.red(color), Color.green(color), Color.blue(color), hsvValues);
-
+                */
                 if (gamepad1.y) { //stop and look for vumarks if Y key is down
                     RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
                     if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
