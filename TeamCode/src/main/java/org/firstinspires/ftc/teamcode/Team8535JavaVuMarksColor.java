@@ -78,7 +78,7 @@ public class Team8535JavaVuMarksColor extends LinearOpMode {
        // private DcMotor vacuum = null;
         //private DcMotor vacuumRelease = null; //this will be eliminated or change to standard servo
 
-        private static boolean SHOW_CAMERA = true; //whether to show the camera on the phone screen
+        private static boolean SHOW_CAMERA = false; //whether to show the camera on the phone screen
         private static boolean JOYSTICK_SCALING = true; //whether to scale joystick values by cubing value (more precision for small movements)
 
         @Override
