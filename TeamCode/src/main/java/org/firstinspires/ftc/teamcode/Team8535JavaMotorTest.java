@@ -108,10 +108,10 @@ public class Team8535JavaMotorTest extends LinearOpMode {
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
-        lf.setDirection(DcMotor.Direction.REVERSE);
-        rf.setDirection(DcMotor.Direction.FORWARD);
-        lb.setDirection(DcMotor.Direction.REVERSE);
-        rb.setDirection(DcMotor.Direction.FORWARD);
+        lf.setDirection(DcMotor.Direction.FORWARD);  //reverse
+        rf.setDirection(DcMotor.Direction.FORWARD);  //forward
+        lb.setDirection(DcMotor.Direction.FORWARD);  //reverse
+        rb.setDirection(DcMotor.Direction.REVERSE);  //forward
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
