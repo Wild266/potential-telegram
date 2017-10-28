@@ -51,6 +51,7 @@ import com.qualcomm.robotcore.util.Range;
  */
 
 @TeleOp(name="JavaTeleOp", group="Linear Opmode")
+@Disabled
 public class Team8535JavaTeleOp extends LinearOpMode {
 
     // Declare OpMode members.

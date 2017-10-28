@@ -57,6 +57,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 @TeleOp(name="JavaMotorTest", group="Linear Opmode")
 public class Team8535JavaMotorTest extends LinearOpMode {
 
+    private static boolean PROD_BOT=false; //set to true to match motor directions on prod bot
+
     //VuMarks
     VuforiaLocalizer vuforia;
 
@@ -70,7 +72,7 @@ public class Team8535JavaMotorTest extends LinearOpMode {
     //private DcMotor vacuum=null;
     //private DcMotor vacuumRelease=null; //this will be eliminated or change to standard servo
 
-    private static boolean SHOW_CAMERA = true; //whether to show the camera on the phone screen
+    private static boolean SHOW_CAMERA = false; //whether to show the camera on the phone screen
     private static boolean JOYSTICK_SCALING = true; //whether to scale joystick values by cubing value (more precision for small movements)
 
     @Override
@@ -108,10 +110,17 @@ public class Team8535JavaMotorTest extends LinearOpMode {
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
-        lf.setDirection(DcMotor.Direction.FORWARD);  //reverse
-        rf.setDirection(DcMotor.Direction.FORWARD);  //forward
-        lb.setDirection(DcMotor.Direction.FORWARD);  //reverse
-        rb.setDirection(DcMotor.Direction.REVERSE);  //forward
+        if (PROD_BOT) {
+            lf.setDirection(DcMotor.Direction.FORWARD);  //reverse
+            rf.setDirection(DcMotor.Direction.FORWARD);  //forward
+            lb.setDirection(DcMotor.Direction.FORWARD);  //reverse
+            rb.setDirection(DcMotor.Direction.REVERSE);  //forward
+        } else {
+            lf.setDirection(DcMotor.Direction.REVERSE);  //reverse
+            rf.setDirection(DcMotor.Direction.FORWARD);  //forward
+            lb.setDirection(DcMotor.Direction.REVERSE);  //reverse
+            rb.setDirection(DcMotor.Direction.FORWARD);  //forward
+        }
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();

@@ -57,6 +57,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 @TeleOp(name="JavaVuMarks", group="Linear Opmode")
 public class Team8535JavaVuMarks extends LinearOpMode {
 
+    private static boolean PROD_BOT=false; //set to true to match motor directions on prod bot
+
     //VuMarks
     VuforiaLocalizer vuforia;
 
@@ -108,10 +110,17 @@ public class Team8535JavaVuMarks extends LinearOpMode {
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
-        lf.setDirection(DcMotor.Direction.FORWARD); //was REVERSE
-        rf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
-        lb.setDirection(DcMotor.Direction.REVERSE); //was FORWARD
-        rb.setDirection(DcMotor.Direction.REVERSE); //was FORWARD
+        if (PROD_BOT) {
+            lf.setDirection(DcMotor.Direction.FORWARD); //was REVERSE
+            rf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
+            lb.setDirection(DcMotor.Direction.REVERSE); //was FORWARD
+            rb.setDirection(DcMotor.Direction.REVERSE); //was FORWARD
+        } else {
+            lf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
+            rf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
+            lb.setDirection(DcMotor.Direction.FORWARD); //was FORWARD
+            rb.setDirection(DcMotor.Direction.FORWARD); //was FORWARD
+        }
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
