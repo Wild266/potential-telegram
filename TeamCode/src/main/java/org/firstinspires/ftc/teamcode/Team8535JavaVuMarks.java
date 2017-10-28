@@ -109,8 +109,8 @@ public class Team8535JavaVuMarks extends LinearOpMode {
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
         lf.setDirection(DcMotor.Direction.REVERSE);
-        rf.setDirection(DcMotor.Direction.FORWARD);
-        lb.setDirection(DcMotor.Direction.REVERSE);
+        rf.setDirection(DcMotor.Direction.REVERSE); //was FORWARD
+        lb.setDirection(DcMotor.Direction.FORWARD); //was REVERSE
         rb.setDirection(DcMotor.Direction.FORWARD);
 
         // Wait for the game to start (driver presses PLAY)
@@ -166,8 +166,8 @@ public class Team8535JavaVuMarks extends LinearOpMode {
                 telemetry.addData("Comp1/Comp2","Comp1=%.2f Comp2=%.2f",comp1,comp2);
 
                 lf.setPower(v1);
-                rf.setPower(v2);
-                lb.setPower(v3);
+                lb.setPower(v2); //was rf
+                rf.setPower(v3); //was lb
                 rb.setPower(v4);
 
                 double vpower = gamepad2.right_stick_y;
