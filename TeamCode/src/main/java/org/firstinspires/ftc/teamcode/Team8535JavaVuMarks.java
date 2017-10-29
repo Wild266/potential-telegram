@@ -57,12 +57,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 @TeleOp(name="JavaVuMarks", group="Linear Opmode")
 public class Team8535JavaVuMarks extends LinearOpMode {
 
-    private static boolean PROD_BOT=false; //set to true to match motor directions on prod bot
+    private static boolean PROD_BOT=true; //set to true to match motor directions on prod bot
 
     //VuMarks
     VuforiaLocalizer vuforia;
 
     // Declare OpMode members.
+    private float speedFactor = 1.0f;
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor lf=null;
     private DcMotor rf=null;
@@ -148,11 +149,18 @@ public class Team8535JavaVuMarks extends LinearOpMode {
                     telemetry.addData("VuMark", "%s visible", vuMark);
                 }
 
+
             } else {
 
-                double lsy=gamepad1.left_stick_y;
-                double lsx=gamepad1.left_stick_x;
-                double rsx=gamepad1.right_stick_x;
+                if (gamepad1.left_trigger > 0.0) {
+                    speedFactor = 0.75f;
+                } else {
+                    speedFactor = 1.0f;
+                }
+
+                double lsy=gamepad1.left_stick_y*speedFactor;
+                double lsx=gamepad1.left_stick_x*speedFactor;
+                double rsx=gamepad1.right_stick_x*(speedFactor*0.85);
 
                 if (JOYSTICK_SCALING) {
                     lsy=Math.pow(lsy,5.0);
