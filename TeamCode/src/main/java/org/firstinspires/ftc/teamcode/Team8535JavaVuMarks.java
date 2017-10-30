@@ -35,6 +35,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.I2cDevice;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -61,7 +62,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 public class Team8535JavaVuMarks extends LinearOpMode {
 
     private static boolean PROD_BOT=true; //set to true to match motor directions on prod bot
-
+    private boolean prodbot = false;
     //VuMarks
     VuforiaLocalizer vuforia;
 
@@ -84,6 +85,14 @@ public class Team8535JavaVuMarks extends LinearOpMode {
     private DcMotor getMotor(String motorName) { //these could be made generic using type notation
         try {
             return(hardwareMap.get(DcMotor.class,motorName));
+        } catch (Exception e) {
+            return(null);
+        }
+    }
+
+    private I2cDevice getDevice(String deviceName) { //these could be made generic using type notation
+        try {
+            return(hardwareMap.get(I2cDevice.class,deviceName));
         } catch (Exception e) {
             return(null);
         }
@@ -128,10 +137,14 @@ public class Team8535JavaVuMarks extends LinearOpMode {
         rb  = hardwareMap.get(DcMotor.class, "rb");
 
         vacuum = getMotor("vacuum");
-
+        if (getDevice("drivebot") != null) {
+            prodbot = false;
+        } else {
+            prodbot = true;
+        }
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
-        if (PROD_BOT) {
+        if (prodbot) {
             lf.setDirection(DcMotor.Direction.FORWARD); //was REVERSE
             rf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
             lb.setDirection(DcMotor.Direction.REVERSE); //was FORWARD

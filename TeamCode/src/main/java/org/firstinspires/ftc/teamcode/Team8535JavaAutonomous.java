@@ -80,16 +80,22 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     private DcMotor lb=null;
     private DcMotor rb=null;
 
-    private DcMotor vacuum=null;
-    private DcMotor vacuumRelease=null; //this will be eliminated or change to standard servo
+    //private DcMotor vacuum=null;
+    //private DcMotor vacuumRelease=null; //this will be eliminated or change to standard servo
 
     private static boolean SHOW_CAMERA=true; //whether to show the camera on the phone screen
     private static boolean JOYSTICK_SCALING=true; //whether to scale joystick values by cubing value (more precision for small movements)
 
     private static final int STATE_START=0; //at start of the run
     private static final int STATE_LOOKING=1; //actively looking for the vumark
-    private static final int STATE_MOVING=2; //moving to cryptobox
-    private static final int STATE_AT_CRYPTOBOX=3; //at cryptobox
+    private static final int STATE_MOVE_ARM_DOWN=2; //moving arm down
+    private static final int STATE_SENSE_BALL_COLOR=3; //sensing the ball's color
+    private static final int STATE_ROTATE_BALL_OFF=4; //rotating the arm to knock the ball off
+    private static final int STATE_MOVE_ARM_UP=5; // moving arm up
+    private static final int STATE_ROTATE_ARM_BACK=6; //rotating the arm back to the way it was
+    private static final int STATE_MOVING=7; //moving to cryptobox
+    private static final int STATE_AT_CRYPTOBOX=8; //at cryptobox
+    private static final int STATE_ROTATE_TO_CRYPTOBOX=9; //rotate the robot to face the cryptobox
 
     private static String[] stateNames={"Starting","Looking","Moving","At CryptoBox"}; //state names for telemetry
 
@@ -161,13 +167,13 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         lb  = hardwareMap.get(DcMotor.class, "lb");
         rb  = hardwareMap.get(DcMotor.class, "rb");
 
-        vacuum = hardwareMap.get(DcMotor.class, "vacuum");
-        vacuumRelease  = hardwareMap.get(DcMotor.class, "release");
+        //vacuum = hardwareMap.get(DcMotor.class, "vacuum");
+        //vacuumRelease  = hardwareMap.get(DcMotor.class, "release");
 
-        lf.setDirection(DcMotor.Direction.REVERSE);
-        rf.setDirection(DcMotor.Direction.FORWARD);
-        lb.setDirection(DcMotor.Direction.REVERSE);
-        rb.setDirection(DcMotor.Direction.FORWARD);
+        lf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
+        rf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
+        lb.setDirection(DcMotor.Direction.FORWARD); //was FORWARD
+        rb.setDirection(DcMotor.Direction.FORWARD); //was FORWARD
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
@@ -190,25 +196,58 @@ public class Team8535JavaAutonomous extends LinearOpMode {
             //use a switch statement to take action based on the state we're in
             switch(state) {
                 case STATE_START:
-                    state=STATE_LOOKING; //start looking for the VuMark
+                    state = STATE_LOOKING; //start looking for the VuMark
                     break;
                 case STATE_LOOKING:
                     vuMark = RelicRecoveryVuMark.from(relicTemplate);
-                    if (vuMark!=RelicRecoveryVuMark.UNKNOWN) {
+                    if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
                         telemetry.addData("VuMark", "%s visible", vuMark);
                         time = runtime.milliseconds();
-                        mecanumMove(-1,0,0);
-                        state=STATE_MOVING; //we're now moving
+                        if (side == SIDE_LEFT) {
+                            mecanumMove(0, 1, 0);
+
+                        } else {
+                            mecanumMove(0, -1, 0);
+                        }
                     }
+                        break;
+
+
+                case STATE_MOVE_ARM_DOWN:
+
                     break;
+
+                case STATE_SENSE_BALL_COLOR:
+
+                    break;
+
+                case STATE_ROTATE_BALL_OFF:
+
+                    break;
+
+                case STATE_MOVE_ARM_UP:
+
+                    break;
+
+                case STATE_ROTATE_ARM_BACK:
+
+                    break;
+
+
+            }
+
                 case STATE_MOVING:
                     telemetry.addData("Moving", "%s units", distMap.get(vuMark));
                     if ((runtime.milliseconds()-time)>distMap.get(vuMark)) {
                         state=STATE_AT_CRYPTOBOX; //after a second were at cryptobox?
                     }
+
                     break;
                 case STATE_AT_CRYPTOBOX:
                     mecanumMove(0,0,0); //stop
+                    break;
+
+                case STATE_ROTATE_TO_CRYPTOBOX:
                     break;
             }
 
