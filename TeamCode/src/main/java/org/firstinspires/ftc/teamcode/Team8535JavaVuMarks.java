@@ -29,8 +29,11 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import android.content.Context;
+
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -70,11 +73,29 @@ public class Team8535JavaVuMarks extends LinearOpMode {
     private DcMotor lb=null;
     private DcMotor rb=null;
 
-    //private DcMotor vacuum=null;
+    private DcMotor vacuum=null;
     //private DcMotor vacuumRelease=null; //this will be eliminated or change to standard servo
 
     private static boolean SHOW_CAMERA=true; //whether to show the camera on the phone screen
     private static boolean JOYSTICK_SCALING=true; //whether to scale joystick values by cubing value (more precision for small movements)
+
+    //introduce methods which allow us to continue even when particular devices aren't found (by just not utilizing those devices)
+
+    private DcMotor getMotor(String motorName) { //these could be made generic using type notation
+        try {
+            return(hardwareMap.get(DcMotor.class,motorName));
+        } catch (Exception e) {
+            return(null);
+        }
+    }
+
+    private ColorSensor getColorSensor(String sensorName) { //these could be made generic using type notation
+        try {
+            return(hardwareMap.get(ColorSensor.class,sensorName));
+        } catch (Exception e) {
+            return(null);
+        }
+    }
 
     @Override
     public void runOpMode() {
@@ -106,8 +127,7 @@ public class Team8535JavaVuMarks extends LinearOpMode {
         lb  = hardwareMap.get(DcMotor.class, "lb");
         rb  = hardwareMap.get(DcMotor.class, "rb");
 
-        //vacuum = hardwareMap.get(DcMotor.class, "vacuum");
-        //vacuumRelease  = hardwareMap.get(DcMotor.class, "release");
+        vacuum = getMotor("vacuum");
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery

@@ -58,11 +58,20 @@ import java.util.Map;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@Autonomous(name="JavaAutoR", group="Autonomous")
-public class Team8535JavaAutoR extends LinearOpMode {
+//@Autonomous(name="JavaAutoR", group="Autonomous")
+public class Team8535JavaAutonomous extends LinearOpMode {
+
+    public static final int ALLIANCE_RED=1;
+    public static final int ALLIANCE_BLUE=2;
+
+    public static final int SIDE_LEFT=1;
+    public static final int SIDE_RIGHT=2;
 
     //VuMarks
     VuforiaLocalizer vuforia;
+
+    private int alliance;
+    private int side;
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -86,6 +95,11 @@ public class Team8535JavaAutoR extends LinearOpMode {
 
     private int state; //the current state our robot is in
     RelicRecoveryVuMark vuMark; //currently detect vuMark
+
+    public Team8535JavaAutonomous(int alliance,int side) {
+        this.alliance=alliance;
+        this.side=side;
+    }
 
     private static Map<RelicRecoveryVuMark,Integer> distMap=new HashMap<RelicRecoveryVuMark,Integer>();
 
