@@ -220,7 +220,7 @@ public class Wild extends LinearOpMode {
                     double vpower = gamepad2.right_stick_y;
                     double rpower = gamepad2.right_stick_x;
 
-                }
+                }  //the above is optionally executed if the button is pressed but so is the regular control below -- perhaps you meant the below to be an "else" block???
                 double lsy=gamepad1.right_stick_y;
                 double lsx=gamepad1.right_stick_x;//right stick drive, left stick rotation
                 double rsx=gamepad1.left_stick_x;//@above ideal for righties
