@@ -210,8 +210,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                             mecanumMove(0, -1, 0);
                         }
                     }
-                        break;
-
+                    break;
 
                 case STATE_MOVE_ARM_DOWN:
 
@@ -233,18 +232,16 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
                     break;
 
-
-            }
-
                 case STATE_MOVING:
                     telemetry.addData("Moving", "%s units", distMap.get(vuMark));
-                    if ((runtime.milliseconds()-time)>distMap.get(vuMark)) {
-                        state=STATE_AT_CRYPTOBOX; //after a second were at cryptobox?
+                    if ((runtime.milliseconds() - time) > distMap.get(vuMark)) {
+                        state = STATE_AT_CRYPTOBOX; //after a second were at cryptobox?
                     }
 
                     break;
+
                 case STATE_AT_CRYPTOBOX:
-                    mecanumMove(0,0,0); //stop
+                    mecanumMove(0, 0, 0); //stop
                     break;
 
                 case STATE_ROTATE_TO_CRYPTOBOX:
