@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -89,6 +90,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
     ColorSensor ballColorSensor; //we'll need a color sensor to detect ball color
     Servo ballArmServo; //we'll need a servo to raise/lower the ball arm
+    ModernRoboticsI2cGyro gyro; //a gyro would be really useful
 
     //private DcMotor vacuum=null;
     //private DcMotor vacuumRelease=null; //this will be eliminated or change to standard servo
@@ -155,6 +157,14 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         }
     }
 
+    private ModernRoboticsI2cGyro getGyro(String gyroName) { //these could be made generic using type notation
+        try {
+            return(hardwareMap.get(ModernRoboticsI2cGyro.class,gyroName));
+        } catch (Exception e) {
+            return(null);
+        }
+    }
+
     /**
      * Set motors for a mecanum move
      * @param lsx left stick x (left/right)
@@ -216,6 +226,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         vacuum = getMotor("vacuum");
         ballColorSensor = getColorSensor("color_sensor");
         ballArmServo = getServo("ball_arm_servo");
+        gyro = getGyro("gyro");
 
         //vacuumRelease  = hardwareMap.get(DcMotor.class, "release");
 
@@ -261,6 +272,8 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     break;
 
                 case STATE_MOVE_ARM_DOWN:
+                    //ballArmServo.setPosition(BALL_ARM_DOWN);
+                    //need to wait a bit -- use technique we used with move
                     //should move servo arm to down position
                     break;
 
@@ -270,9 +283,12 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
                 case STATE_ROTATE_BALL_OFF:
                     //should rotate bot CW or CCW depending on alliance and color of ball sensed
+                    //mecanumMove(0, 0, 0.5); //a minus or plus move and for a time (or use a gyro)
                     break;
 
                 case STATE_MOVE_ARM_UP:
+                    //ballArmServo.setPosition(BALL_ARM_UP);
+                    //need to wait a bit -- use technique we used with move
                     //should move servo arm to up position
                     break;
 
