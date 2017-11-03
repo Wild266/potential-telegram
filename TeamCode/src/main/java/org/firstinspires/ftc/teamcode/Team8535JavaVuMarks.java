@@ -67,7 +67,7 @@ public class Team8535JavaVuMarks extends LinearOpMode {
     VuforiaLocalizer vuforia;
 
     // Declare OpMode members.
-    private float speedFactor = 1.0f;
+    private double speedFactor = 1.0;
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor lf=null;
     private DcMotor rf=null;
@@ -186,9 +186,9 @@ public class Team8535JavaVuMarks extends LinearOpMode {
             } else {
 
                 if (gamepad1.left_trigger > 0.0) {
-                    speedFactor = 0.75f;
+                    speedFactor = 0.75;
                 } else {
-                    speedFactor = 1.0f;
+                    speedFactor = 1.0;
                 }
 
                 double lsy=gamepad1.left_stick_y*speedFactor;
