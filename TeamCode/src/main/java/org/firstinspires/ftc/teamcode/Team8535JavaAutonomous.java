@@ -32,7 +32,10 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.I2cDevice;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -67,6 +70,9 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     public static final int SIDE_LEFT=1;
     public static final int SIDE_RIGHT=2;
 
+    public static double BALL_ARM_UP=1.0; //fill these in after testing on prod bot
+    public static double BALL_ARM_DOWN=0.0; //fill these in after testing on prod bot
+
     //VuMarks
     VuforiaLocalizer vuforia;
 
@@ -79,6 +85,10 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     private DcMotor rf=null;
     private DcMotor lb=null;
     private DcMotor rb=null;
+    private DcMotor vacuum=null;
+
+    ColorSensor ballColorSensor; //we'll need a color sensor to detect ball color
+    Servo ballArmServo; //we'll need a servo to raise/lower the ball arm
 
     //private DcMotor vacuum=null;
     //private DcMotor vacuumRelease=null; //this will be eliminated or change to standard servo
@@ -110,6 +120,38 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     }
 
     private static Map<RelicRecoveryVuMark,Integer> distMap=new HashMap<RelicRecoveryVuMark,Integer>();
+
+    private DcMotor getMotor(String motorName) { //these could be made generic using type notation
+        try {
+            return(hardwareMap.get(DcMotor.class,motorName));
+        } catch (Exception e) {
+            return(null);
+        }
+    }
+
+    private I2cDevice getDevice(String deviceName) { //these could be made generic using type notation
+        try {
+            return(hardwareMap.get(I2cDevice.class,deviceName));
+        } catch (Exception e) {
+            return(null);
+        }
+    }
+
+    private ColorSensor getColorSensor(String sensorName) { //these could be made generic using type notation
+        try {
+            return(hardwareMap.get(ColorSensor.class,sensorName));
+        } catch (Exception e) {
+            return(null);
+        }
+    }
+
+    private Servo getServo(String servoName) { //these could be made generic using type notation
+        try {
+            return(hardwareMap.get(Servo.class,servoName));
+        } catch (Exception e) {
+            return(null);
+        }
+    }
 
     /**
      * Set motors for a mecanum move
@@ -169,7 +211,10 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         lb  = hardwareMap.get(DcMotor.class, "lb");
         rb  = hardwareMap.get(DcMotor.class, "rb");
 
-        //vacuum = hardwareMap.get(DcMotor.class, "vacuum");
+        vacuum = getMotor("vacuum");
+        ballColorSensor = getColorSensor("color_sensor");
+        ballArmServo = getServo("ball_arm_servo");
+
         //vacuumRelease  = hardwareMap.get(DcMotor.class, "release");
 
         lf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
