@@ -96,6 +96,8 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     private static final int STATE_MOVING=7; //moving to cryptobox
     private static final int STATE_AT_CRYPTOBOX=8; //at cryptobox
     private static final int STATE_ROTATE_TO_CRYPTOBOX=9; //rotate the robot to face the cryptobox
+    private static final int PUSH_BLOCK_TO_CRYPTOBOX=10;
+    private static final int RELEASE_BLOCK=11;
 
     private static String[] stateNames={"Starting","Looking","Moving","At CryptoBox"}; //state names for telemetry
 
@@ -205,7 +207,6 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                         time = runtime.milliseconds();
                         if (side == SIDE_LEFT) {
                             mecanumMove(0, 1, 0);
-
                         } else {
                             mecanumMove(0, -1, 0);
                         }
@@ -213,26 +214,27 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     break;
 
                 case STATE_MOVE_ARM_DOWN:
-
+                    //should move servo arm to down position
                     break;
 
                 case STATE_SENSE_BALL_COLOR:
-
+                    //should read the color sensor and record color (using comparison of blue to red)
                     break;
 
                 case STATE_ROTATE_BALL_OFF:
-
+                    //should rotate bot CW or CCW depending on alliance and color of ball sensed
                     break;
 
                 case STATE_MOVE_ARM_UP:
-
+                    //should move servo arm to up position
                     break;
 
                 case STATE_ROTATE_ARM_BACK:
-
+                    //should rotate bot opposite of previous rotate step
                     break;
 
                 case STATE_MOVING:
+                    //should move by time, encoders, or inertial
                     telemetry.addData("Moving", "%s units", distMap.get(vuMark));
                     if ((runtime.milliseconds() - time) > distMap.get(vuMark)) {
                         state = STATE_AT_CRYPTOBOX; //after a second were at cryptobox?
@@ -245,6 +247,13 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     break;
 
                 case STATE_ROTATE_TO_CRYPTOBOX:
+                    //rotate to face cryptobox
+                    break;
+
+                case PUSH_BLOCK_TO_CRYPTOBOX:
+                    break;
+
+                case RELEASE_BLOCK:
                     break;
             }
 
