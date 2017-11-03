@@ -109,7 +109,9 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     private static final int PUSH_BLOCK_TO_CRYPTOBOX=10;
     private static final int RELEASE_BLOCK=11;
 
-    private static String[] stateNames={"Starting","Looking","Moving","At CryptoBox"}; //state names for telemetry
+    private static String[] stateNames={"Starting","Looking","Moving Arm Down","Sensing Ball Color",
+            "Rotating to Knock Ball Off","Moving Arm Up","Rotating Back","Moving to CryptoBox",
+            "At CryptoBox","Rotating To CryptoBox","Pushing Block To CryptoBox","Releasing Block"}; //state names for telemetry
 
     private int state; //the current state our robot is in
     RelicRecoveryVuMark vuMark; //currently detect vuMark
