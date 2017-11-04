@@ -163,6 +163,16 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         ballArmServo = getServo("ball_arm");
         ballColorSensor = getColorSensor("ball_color");
 
+        gripperLeftServo.scaleRange(0.0,1.0); //tune these later to desired range
+        gripperRightServo.scaleRange(0.0,1.0);
+        vacuumReleaseServo.scaleRange(0.0,1.0);
+        ballArmServo.scaleRange(0.0,1.0);
+
+        gripperLeftServo.setDirection(Servo.Direction.FORWARD);
+        gripperRightServo.setDirection(Servo.Direction.FORWARD);
+        vacuumReleaseServo.setDirection(Servo.Direction.FORWARD);
+        ballArmServo.setDirection(Servo.Direction.FORWARD);
+
         if (getDevice("drivebot") != null) {
             prodbot = false;
         } else {
@@ -207,6 +217,10 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         lb.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rb.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+        if (ballColorSensor!=null) {
+            ballColorSensor.enableLed(true);
+        }
+
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
@@ -219,6 +233,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             boolean slowMode = (gamepad1.left_trigger > 0.0);
             boolean lowerBallArm = (gamepad1.dpad_down);
             boolean raiseBallArm = (gamepad1.dpad_up);
+            double vacuumRelease = gamepad1.right_trigger;
 
             //gamepad2
             double raiseLowerLift = gamepad2.left_stick_y;
@@ -253,7 +268,6 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                 gripperLiftMotor.setPower(raiseLowerLift);
             }
 
-
             if (vacuumMotor!=null) {
                 if (startVacuum) vacuumRunning=true;
                 if (stopVacuum) vacuumRunning=false;
@@ -271,18 +285,29 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                 if (lowerRelicArm && !raiseRelicArm) armLiftMotor.setPower(-1.0);
             }
 
-            gripperLeftServo = getServo("gripper_left");
-            gripperRightServo = getServo("gripper_right");
-            vacuumReleaseServo = getServo("vacuum_release");
-            ballArmServo = getServo("ball_arm");
-            ballColorSensor = getColorSensor("ball_color");
-            /*
-            double vpower = gamepad2.right_stick_y;
-            double rpower = gamepad2.right_stick_x;
+            if (gripperLeftServo!=null) {
+                gripperLeftServo.setPosition(leftClamp);
+            }
 
-            //vacuum.setPower(vpower);
-            //vacuumRelease.setPower(rpower);
-            */
+            if (gripperRightServo!=null) {
+                gripperRightServo.setPosition(rightClamp);
+            }
+
+            if (vacuumReleaseServo !=null) {
+                vacuumReleaseServo.setPosition(vacuumRelease);
+            }
+
+            if (ballArmServo !=null) {
+                if (lowerBallArm && !raiseBallArm) ballArmServo.setPosition(1.0);
+                if (raiseBallArm && !lowerBallArm) ballArmServo.setPosition(0);
+            }
+
+            if (ballColorSensor!=null) {
+                telemetry.addData("Clear", ballColorSensor.alpha());
+                telemetry.addData("Red  ", ballColorSensor.red());
+                telemetry.addData("Green", ballColorSensor.green());
+                telemetry.addData("Blue ", ballColorSensor.blue());
+            }
 
             int lfpos = lf.getCurrentPosition(); //show positions to help with auto mode
             int rfpos = rf.getCurrentPosition();
