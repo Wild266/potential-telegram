@@ -61,10 +61,16 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private Servo gripperLeftServo = null;
     private Servo gripperRightServo = null;
 
+    private int heightPosition1 = 0; //probably too low but need calibration
+    private int heightPosition2 = 100;
+    private int heightPosition3 = 200;
+    private int heightPosition4 = 300;
+
     //Relic Arm
     private DcMotor vacuumMotor = null;
     private DcMotor armExtendMotor = null;
     private DcMotor armLiftMotor = null;
+    private Servo relicLiftServo = null;
     private Servo vacuumReleaseServo = null;
 
     //Ball Arm
@@ -159,6 +165,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         vacuumMotor = getMotor("vacuum");
         armExtendMotor = getMotor("arm_extend");
         armLiftMotor = getMotor("arm_lift");
+        relicLiftServo = getServo("relic_lift");
         vacuumReleaseServo = getServo("vacuum_release");
         ballArmServo = getServo("ball_arm");
         ballColorSensor = getColorSensor("ball_color");
@@ -212,6 +219,11 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         lb.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rb.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
+        if (gripperLiftMotor!=null) {
+            gripperLiftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            gripperLiftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); //we will probably switch modes for this motor for presets
+        }
+
         lf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); //runs again
         rf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         lb.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -233,7 +245,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             boolean slowMode = (gamepad1.left_trigger > 0.0);
             boolean lowerBallArm = (gamepad1.dpad_down);
             boolean raiseBallArm = (gamepad1.dpad_up);
-            double vacuumRelease = gamepad1.right_trigger;
+            double vacuumRelease = gamepad1.right_trigger; //couldn't find room on gamepad2
 
             //gamepad2
             double raiseLowerLift = gamepad2.left_stick_y;
@@ -245,8 +257,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             boolean height4 = gamepad2.y; //highest preset gripper height
             boolean extendRelicArm = gamepad2.dpad_right;
             boolean retractRelicArm = gamepad2.dpad_left;
-            boolean raiseRelicArm = gamepad2.dpad_up;
-            boolean lowerRelicArm = gamepad2.dpad_down;
+            boolean raiseRelic = gamepad2.dpad_up;
+            boolean lowerRelic = gamepad2.dpad_down;
             double lowerRaiseArm = gamepad2.right_stick_y;
             boolean startVacuum = gamepad2.start;
             boolean stopVacuum = gamepad2.back;
@@ -265,24 +277,50 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             mecanumMove(lsx,lsy,rsx);
 
             if (gripperLiftMotor!=null) {
-                gripperLiftMotor.setPower(raiseLowerLift);
+                if (raiseLowerLift!=0.0) {
+                    if (gripperLiftMotor.getMode()!=DcMotor.RunMode.RUN_WITHOUT_ENCODER)
+                        gripperLiftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    gripperLiftMotor.setPower(raiseLowerLift);
+                } else {
+                    if (height1 || height2 || height3 || height4) {
+                        //we're assuming the encoder was zeroed at the bottom before the op mode started (and has tracked changes)
+                        if (gripperLiftMotor.getMode()!=DcMotor.RunMode.RUN_TO_POSITION) {
+                            gripperLiftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                        }
+                        if (height1) gripperLiftMotor.setTargetPosition(heightPosition1);
+                        if (height2) gripperLiftMotor.setTargetPosition(heightPosition2);
+                        if (height3) gripperLiftMotor.setTargetPosition(heightPosition3);
+                        if (height4) gripperLiftMotor.setTargetPosition(heightPosition4);
+                        gripperLiftMotor.setPower(1.0);
+
+                        while (opModeIsActive() && gripperLiftMotor.isBusy()) { //this freezes until it's in position -- might want to do this during other things
+                            telemetry.addData("LiftPosition",  "Running To %7d At %7d",gripperLiftMotor.getTargetPosition(),gripperLiftMotor.getCurrentPosition());
+                            telemetry.update();
+                        }
+
+                        gripperLiftMotor.setPower(0);
+                        gripperLiftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                    }
+                }
             }
 
             if (vacuumMotor!=null) {
                 if (startVacuum) vacuumRunning=true;
                 if (stopVacuum) vacuumRunning=false;
-                if (vacuumRunning) {
-                    vacuumMotor.setPower(1.0);
-                }
+                if (vacuumRunning) vacuumMotor.setPower(1.0);
             }
             if (armExtendMotor!=null) {
                 if (extendRelicArm && !retractRelicArm) armExtendMotor.setPower(1.0);
                 if (retractRelicArm && !extendRelicArm) armExtendMotor.setPower(-1.0);
             }
 
+            if (relicLiftServo!=null) {
+                if (raiseRelic && !lowerRelic) relicLiftServo.setPosition(1.0);
+                if (lowerRelic && !raiseRelic) relicLiftServo.setPosition(0.0);
+            }
+
             if (armLiftMotor!=null) {
-                if (raiseRelicArm && !lowerRelicArm) armLiftMotor.setPower(1.0);
-                if (lowerRelicArm && !raiseRelicArm) armLiftMotor.setPower(-1.0);
+                armLiftMotor.setPower(raiseLowerLift);
             }
 
             if (gripperLeftServo!=null) {
