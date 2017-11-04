@@ -131,7 +131,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         }
 
         double r = Math.sqrt(lsy*lsy+lsx*lsx);
-        double robotAngle = Math.atan2(-1*lsx,lsy) - Math.PI / 4;
+        double robotAngle = Math.atan2(lsy,-1*lsx) - Math.PI / 4;
         double rightX = -1 * rsx;
         final double v1 = r * Math.cos(robotAngle) + rightX;
         final double v2 = r * Math.sin(robotAngle) - rightX;
@@ -148,6 +148,11 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     public void runOpMode() {
 
         telemetry.addData("Status", "Initialized");
+        if (prodbot) {
+            telemetry.addData("Bot", "ProdBot");
+        } else {
+            telemetry.addData("Bot", "DriveBot");
+        }
         telemetry.update();
 
         //initialize required motors
@@ -170,15 +175,15 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         ballArmServo = getServo("ball_arm");
         ballColorSensor = getColorSensor("ball_color");
 
-        gripperLeftServo.scaleRange(0.0,1.0); //tune these later to desired range
-        gripperRightServo.scaleRange(0.0,1.0);
-        vacuumReleaseServo.scaleRange(0.0,1.0);
-        ballArmServo.scaleRange(0.0,1.0);
+        if (gripperLeftServo!=null) gripperLeftServo.scaleRange(0.0,1.0); //tune these later to desired range
+        if (gripperRightServo!=null) gripperRightServo.scaleRange(0.0,1.0);
+        if (vacuumReleaseServo!=null) vacuumReleaseServo.scaleRange(0.0,1.0);
+        if (ballArmServo!=null) ballArmServo.scaleRange(0.0,1.0);
 
-        gripperLeftServo.setDirection(Servo.Direction.FORWARD);
-        gripperRightServo.setDirection(Servo.Direction.FORWARD);
-        vacuumReleaseServo.setDirection(Servo.Direction.FORWARD);
-        ballArmServo.setDirection(Servo.Direction.FORWARD);
+        if (gripperLeftServo!=null) gripperLeftServo.setDirection(Servo.Direction.FORWARD);
+        if (gripperRightServo!=null) gripperRightServo.setDirection(Servo.Direction.FORWARD);
+        if (vacuumReleaseServo!=null) vacuumReleaseServo.setDirection(Servo.Direction.FORWARD);
+        if (ballArmServo!=null) ballArmServo.setDirection(Servo.Direction.FORWARD);
 
         if (getDevice("drivebot") != null) {
             prodbot = false;
@@ -200,8 +205,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
         } else {
             lf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
-            rf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
-            lb.setDirection(DcMotor.Direction.FORWARD); //was FORWARD
+            rf.setDirection(DcMotor.Direction.FORWARD); //was REVERSE
+            lb.setDirection(DcMotor.Direction.REVERSE); //was FORWARD
             rb.setDirection(DcMotor.Direction.FORWARD); //was FORWARD
 
             if (gripperLiftMotor!=null) gripperLiftMotor.setDirection(DcMotor.Direction.FORWARD);
