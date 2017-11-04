@@ -65,8 +65,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 // controller VUZO motor2(gripper lift) positive=down negative=up -- gravity wins
 
 //PROBLEMS
-// rf running backwards
-// rb doesn't move (IS REVERSED)
+// rf running backwards (we reversed initial position here)
+// rb doesn't move (IS REVERSED) (fixed through reversing with other motor on controller)
 // jewel arm (up and down) doesn't work
 // opposite on left trigger
 // top hat up and down ???
@@ -229,10 +229,10 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
         if (prodbot) {
-            lf.setDirection(DcMotor.Direction.FORWARD); //was REVERSE
+            lf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
             rf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
             lb.setDirection(DcMotor.Direction.REVERSE); //was FORWARD
-            rb.setDirection(DcMotor.Direction.REVERSE); //was FORWARD
+            rb.setDirection(DcMotor.Direction.FORWARD); //was FORWARD
 
             if (gripperLiftMotor!=null) gripperLiftMotor.setDirection(DcMotor.Direction.FORWARD);
             if (vacuumMotor!=null) vacuumMotor.setDirection(DcMotor.Direction.FORWARD);

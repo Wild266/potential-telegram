@@ -57,7 +57,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 @TeleOp(name="JavaMotorTest", group="Linear Opmode")
 public class Team8535JavaMotorTest extends LinearOpMode {
 
-    private static boolean PROD_BOT=false; //set to true to match motor directions on prod bot
+    private static boolean PROD_BOT=true; //set to true to match motor directions on prod bot
 
     //VuMarks
     VuforiaLocalizer vuforia;
@@ -103,7 +103,7 @@ public class Team8535JavaMotorTest extends LinearOpMode {
         lf = hardwareMap.get(DcMotor.class, "lf");
         rf = hardwareMap.get(DcMotor.class, "rf");
         lb = hardwareMap.get(DcMotor.class, "lb");
-        rb = hardwareMap.get(DcMotor.class, "rb");
+        rb = hardwareMap.get(DcMotor.class, "rb"); //new comment
 
         //vacuum = hardwareMap.get(DcMotor.class, "vacuum");
         //vacuumRelease  = hardwareMap.get(DcMotor.class, "release");
@@ -111,10 +111,10 @@ public class Team8535JavaMotorTest extends LinearOpMode {
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
         if (PROD_BOT) {
-            lf.setDirection(DcMotor.Direction.FORWARD);  //reverse
-            rf.setDirection(DcMotor.Direction.FORWARD);  //forward
-            lb.setDirection(DcMotor.Direction.FORWARD);  //reverse
-            rb.setDirection(DcMotor.Direction.REVERSE);  //forward
+            lf.setDirection(DcMotor.Direction.REVERSE);  //reverse
+            rf.setDirection(DcMotor.Direction.REVERSE);  //forward
+            lb.setDirection(DcMotor.Direction.REVERSE);  //reverse
+            rb.setDirection(DcMotor.Direction.FORWARD);  //forward
         } else {
             lf.setDirection(DcMotor.Direction.REVERSE);  //reverse
             rf.setDirection(DcMotor.Direction.FORWARD);  //forward
