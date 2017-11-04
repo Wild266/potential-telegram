@@ -49,6 +49,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private double speedFactor = 1.0; //default full speed
 
     private ElapsedTime runtime = new ElapsedTime();
+    private double vacuumTime=0.0;
 
     //Drive Motors
     private DcMotor lf = null;
@@ -131,8 +132,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         }
 
         double r = Math.sqrt(lsy*lsy+lsx*lsx);
-        double robotAngle = Math.atan2(lsy,-1*lsx) - Math.PI / 4;
-        double rightX = -1 * rsx;
+        double robotAngle = Math.atan2(-1*lsy,lsx) - Math.PI / 4;
+        double rightX = rsx;
         final double v1 = r * Math.cos(robotAngle) + rightX;
         final double v2 = r * Math.sin(robotAngle) - rightX;
         final double v3 = r * Math.sin(robotAngle) + rightX;
@@ -310,9 +311,23 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             }
 
             if (vacuumMotor!=null) {
-                if (startVacuum) vacuumRunning=true;
-                if (stopVacuum) vacuumRunning=false;
-                if (vacuumRunning) vacuumMotor.setPower(1.0);
+                if (startVacuum && !vacuumRunning && ((runtime.time()-vacuumTime)>0.2)) {
+                    vacuumRunning=true;
+                    vacuumTime=runtime.time();
+                } else if (startVacuum && vacuumRunning && ((runtime.time()-vacuumTime)>0.2)) {
+                    vacuumRunning=false;
+                    vacuumTime=runtime.time();
+                } else if (startVacuum) {
+                    vacuumTime=runtime.time(); //to avoid self-toggle
+                }
+                if (stopVacuum) vacuumRunning=false; //can't get back button to work
+                if (vacuumRunning) {
+                    telemetry.addData("Vacuum","On");
+                    vacuumMotor.setPower(1.0);
+                } else {
+                    telemetry.addData("Vacuum","Off");
+                    vacuumMotor.setPower(0.0);
+                }
             }
             if (armExtendMotor!=null) {
                 if (extendRelicArm && !retractRelicArm) armExtendMotor.setPower(1.0);
@@ -345,12 +360,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                 if (raiseBallArm && !lowerBallArm) ballArmServo.setPosition(0);
             }
 
-            if (ballColorSensor!=null) {
-                telemetry.addData("Clear", ballColorSensor.alpha());
-                telemetry.addData("Red  ", ballColorSensor.red());
-                telemetry.addData("Green", ballColorSensor.green());
-                telemetry.addData("Blue ", ballColorSensor.blue());
-            }
+            if (ballColorSensor!=null)
+                telemetry.addData("BallColor","R=%d G=%d B=%d A=%d", ballColorSensor.red(), ballColorSensor.green(), ballColorSensor.blue(), ballColorSensor.alpha());
 
             int lfpos = lf.getCurrentPosition(); //show positions to help with auto mode
             int rfpos = rf.getCurrentPosition();
