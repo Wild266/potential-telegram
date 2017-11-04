@@ -40,6 +40,39 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Team8235 TeleOp OpMode
  */
 
+//SENSORS
+// gyro is at 20
+// color sensor at 48
+// color sensor 3C default address for one on the arm
+
+//SERVOS
+// channel 5 left gripper   0=in 220=out
+// channel 4 right gripper  0=out 220=in
+// channel 1 relic arm      0=out 220=in
+// channel 6 ball arm       0=down 150=up
+
+//MOTORS
+// controller OPQ5 motor1(lf) positive=forward
+// controller OPQ5 motor2(rf) postiive=forward
+
+// controller QHLS motor1(lb) positive=forward
+// controller QHLS motor2(rb??)  DOES NOTHING/SOMETHING WRONG?
+
+// controller VKGI motor1(vacuum pump)
+// controller VKGI motor2(relic arm up) positive=up negative=down
+
+// controller VUZO motor1(linear slide up) positive=in negative=out
+// controller VUZO motor2(gripper lift) positive=down negative=up -- gravity wins
+
+//PROBLEMS
+// rf running backwards
+// rb doesn't move (IS REVERSED)
+// jewel arm (up and down) doesn't work
+// opposite on left trigger
+// top hat up and down ???
+
+
+
 @TeleOp(name = "JavaTeleOp", group = "Linear Opmode")
 public class Team8535JavaTeleOp extends LinearOpMode {
 
@@ -175,6 +208,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         vacuumReleaseServo = getServo("vacuum_release");
         ballArmServo = getServo("ball_arm");
         ballColorSensor = getColorSensor("ball_color");
+    // bottom color sensor need to put in
+    // gyro sensor need to put in
 
         if (gripperLeftServo!=null) gripperLeftServo.scaleRange(0.0,1.0); //tune these later to desired range
         if (gripperRightServo!=null) gripperRightServo.scaleRange(0.0,1.0);
