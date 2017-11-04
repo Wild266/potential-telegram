@@ -365,8 +365,14 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                 }
             }
             if (armExtendMotor!=null) {
-                if (extendRelicArm && !retractRelicArm) armExtendMotor.setPower(1.0);
-                if (retractRelicArm && !extendRelicArm) armExtendMotor.setPower(-1.0);
+                if (extendRelicArm && !retractRelicArm) {
+                    armExtendMotor.setPower(1.0);
+                } else if (retractRelicArm && !extendRelicArm) {
+                    armExtendMotor.setPower(-1.0);
+                } else {
+                    armExtendMotor.setPower(0.0);
+                }
+
             }
 
             if (relicLiftServo!=null) {
