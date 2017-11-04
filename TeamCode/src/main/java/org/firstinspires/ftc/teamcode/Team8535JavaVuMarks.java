@@ -36,6 +36,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.I2cDevice;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -46,36 +47,42 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
 
 /**
- * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
- * the autonomous or the teleop period of an FTC match. The names of OpModes appear on the menu
- * of the FTC Driver Station. When an selection is made from the menu, the corresponding OpMode
- * class is instantiated on the Robot Controller and executed.
- *
- * This particular OpMode just executes a basic Tank Drive Teleop for a two wheeled robot
- * It includes all the skeletal structure that all linear OpModes contain.
- *
- * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
+ * Team8235 TeleOp OpMode
  */
 
 @TeleOp(name="JavaVuMarks", group="Linear Opmode")
 public class Team8535JavaVuMarks extends LinearOpMode {
 
-    private static boolean PROD_BOT=true; //set to true to match motor directions on prod bot
     private boolean prodbot = false;
-    //VuMarks
+
+    //Vision
     VuforiaLocalizer vuforia;
 
-    // Declare OpMode members.
-    private double speedFactor = 1.0;
+    //Speed Factor for Fast/Slow Mode
+    private double speedFactor = 1.0; //default full speed
+
     private ElapsedTime runtime = new ElapsedTime();
+
+    //Drive Motors
     private DcMotor lf=null;
     private DcMotor rf=null;
     private DcMotor lb=null;
     private DcMotor rb=null;
 
-    private DcMotor vacuum=null;
-    //private DcMotor vacuumRelease=null; //this will be eliminated or change to standard servo
+    //Front Gripper
+    private DcMotor gripperLiftMotor=null;
+    private Servo gripperLeftServo=null;
+    private Servo gripperRightServo=null;
+
+    //Relic Arm
+    private DcMotor vacuumMotor=null;
+    private DcMotor armExtendMotor=null;
+    private DcMotor armLiftMotor=null;
+    private Servo vacuumReleaseServo=null;
+
+    //Ball Arm
+    private Servo ballArmServo=null;
+    private ColorSensor ballColorSensor=null;
 
     private static boolean SHOW_CAMERA=true; //whether to show the camera on the phone screen
     private static boolean JOYSTICK_SCALING=true; //whether to scale joystick values by cubing value (more precision for small movements)
@@ -93,6 +100,14 @@ public class Team8535JavaVuMarks extends LinearOpMode {
     private I2cDevice getDevice(String deviceName) { //these could be made generic using type notation
         try {
             return(hardwareMap.get(I2cDevice.class,deviceName));
+        } catch (Exception e) {
+            return(null);
+        }
+    }
+
+    private Servo getServo(String servoName) { //these could be made generic using type notation
+        try {
+            return(hardwareMap.get(Servo.class,servoName));
         } catch (Exception e) {
             return(null);
         }
@@ -136,7 +151,16 @@ public class Team8535JavaVuMarks extends LinearOpMode {
         lb  = hardwareMap.get(DcMotor.class, "lb");
         rb  = hardwareMap.get(DcMotor.class, "rb");
 
-        vacuum = getMotor("vacuum");
+        gripperLiftMotor=getMotor("gripper_lift");
+        gripperLeftServo=getServo("gripper_left");
+        gripperRightServo=getServo("gripper_right");
+        vacuumMotor=getMotor("vacuum");
+        armExtendMotor=getMotor("arm_extend");
+        armLiftMotor=getMotor("arm_lift");
+        vacuumReleaseServo=getServo("vacuum_release");
+        ballArmServo=getServo("ball_arm");
+        ballColorSensor=getColorSensor("ball_color");
+
         if (getDevice("drivebot") != null) {
             prodbot = false;
         } else {
@@ -174,6 +198,32 @@ public class Team8535JavaVuMarks extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+
+            //translate some gamepad controls to variables
+
+            //gamepad1
+            double backForward=gamepad1.left_stick_y;
+            double leftRight=gamepad1.left_stick_x;
+            double ccwCwRotate=gamepad1.right_stick_x;
+            boolean slowMode=(gamepad1.left_trigger>0.0);
+            boolean lowerBallArm=(gamepad1.dpad_down);
+            boolean raiseBallArm=(gamepad1.dpad_up);
+
+            //gamepad2
+            double lowerRaiseLift=gamepad2.left_stick_y;
+            double leftClamp=gamepad2.left_trigger;
+            double rightClamp=gamepad2.right_trigger;
+            boolean height1=gamepad2.x; //lowest preset gripper height
+            boolean height2=gamepad2.a;
+            boolean height3=gamepad2.b;
+            boolean height4=gamepad2.y; //highest preset gripper height
+            boolean extendRelicArm=gamepad2.dpad_right;
+            boolean retractRelicArm=gamepad2.dpad_left;
+            boolean raiseRelicArm=gamepad2.dpad_up;
+            boolean lowerRelicArm=gamepad2.dpad_down;
+            double lowerRaiseArm=gamepad2.right_stick_y;
+            boolean startVacuum=gamepad2.start;
+            boolean stopVacuum=gamepad2.back;
 
             if (gamepad1.y) { //stop and look for vumarks if Y key is down
 
