@@ -28,10 +28,12 @@
  */
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.I2cDevice;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -111,6 +113,11 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private Servo ballArmServo = null;
     private ColorSensor ballColorSensor = null;
 
+    //Base
+    private ColorSensor bottomColorSensor = null;
+
+    private ModernRoboticsI2cGyro gyro = null;
+
     //State Variables
     private boolean vacuumRunning=false;
 
@@ -147,6 +154,14 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             return (hardwareMap.get(ColorSensor.class, sensorName));
         } catch (Exception e) {
             return (null);
+        }
+    }
+
+    private ModernRoboticsI2cGyro getGyro(String gyroName) { //these could be made generic using type notation
+        try {
+            return(hardwareMap.get(ModernRoboticsI2cGyro.class,gyroName));
+        } catch (Exception e) {
+            return(null);
         }
     }
 
@@ -208,8 +223,26 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         vacuumReleaseServo = getServo("vacuum_release");
         ballArmServo = getServo("ball_arm");
         ballColorSensor = getColorSensor("ball_color");
-    // bottom color sensor need to put in
-    // gyro sensor need to put in
+        bottomColorSensor = getColorSensor("bottom_color");
+        if (bottomColorSensor!=null) {
+            bottomColorSensor.setI2cAddress(I2cAddr.create7bit(0x48)); //we believe these are 7bit addresses
+        }
+        gyro = getGyro("gyro");
+        if (gyro!=null) { //just rename the gyro in the resource file to run without it
+            gyro.setI2cAddress(I2cAddr.create7bit(0x10)); //we believe these are 7bit addresses
+            telemetry.log().add("Gyro Calibrating. Do Not Move!");
+            gyro.calibrate();
+            // Wait until the gyro calibration is complete
+            runtime.reset();
+            while (!isStopRequested() && gyro.isCalibrating())  {
+                telemetry.addData("Calibrating", "%s", Math.round(runtime.seconds())%2==0 ? "|.." : "..|");
+                telemetry.update();
+                sleep(50);
+            }
+            telemetry.log().clear(); telemetry.log().add("Gyro Calibrated. Press Start.");
+            telemetry.clear(); telemetry.update();
+            gyro.resetZAxisIntegrator();
+        }
 
         if (gripperLeftServo!=null) gripperLeftServo.scaleRange(0.0,1.0); //tune these later to desired range
         if (gripperRightServo!=null) gripperRightServo.scaleRange(0.0,1.0);
@@ -272,6 +305,10 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
         if (ballColorSensor!=null) {
             ballColorSensor.enableLed(true);
+        }
+
+        if (bottomColorSensor!=null) {
+            bottomColorSensor.enableLed(true);
         }
 
         // run until the end of the match (driver presses STOP)
@@ -404,13 +441,19 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             if (ballColorSensor!=null)
                 telemetry.addData("BallColor","R=%d G=%d B=%d A=%d", ballColorSensor.red(), ballColorSensor.green(), ballColorSensor.blue(), ballColorSensor.alpha());
 
+            if (bottomColorSensor!=null)
+                telemetry.addData("BottomColor","R=%d G=%d B=%d A=%d", bottomColorSensor.red(), bottomColorSensor.green(), bottomColorSensor.blue(), bottomColorSensor.alpha());
+
             int lfpos = lf.getCurrentPosition(); //show positions to help with auto mode
             int rfpos = rf.getCurrentPosition();
             int lbpos = lb.getCurrentPosition();
             int rbpos = rb.getCurrentPosition();
 
             telemetry.addData("Positions", "lf=%d rf=%d lb=%d rb=%d", lfpos, rfpos, lbpos, rbpos);
-
+            if (gyro!=null) {
+                int heading = gyro.getHeading();
+                telemetry.addData("Heading","%3d degrees",heading);
+            }
             // Show the elapsed game time
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.update();
