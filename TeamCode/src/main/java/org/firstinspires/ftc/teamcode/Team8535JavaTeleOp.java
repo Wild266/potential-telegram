@@ -197,10 +197,12 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     public void runOpMode() {
 
         telemetry.addData("Status", "Initialized");
-        if (prodbot) {
-            telemetry.addData("Bot", "ProdBot");
-        } else {
+        if (getDevice("drivebot") != null) {
+            prodbot = false;
             telemetry.addData("Bot", "DriveBot");
+        } else {
+            prodbot = true;
+            telemetry.addData("Bot", "ProdBot");
         }
         telemetry.update();
 
@@ -249,16 +251,11 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         if (vacuumReleaseServo!=null) vacuumReleaseServo.scaleRange(0.0,1.0);
         if (ballArmServo!=null) ballArmServo.scaleRange(0.0,1.0);
 
-        if (gripperLeftServo!=null) gripperLeftServo.setDirection(Servo.Direction.FORWARD);
+        if (gripperLeftServo!=null) gripperLeftServo.setDirection(Servo.Direction.REVERSE); //changed to reverse to flip left gripper servo direction
         if (gripperRightServo!=null) gripperRightServo.setDirection(Servo.Direction.FORWARD);
         if (vacuumReleaseServo!=null) vacuumReleaseServo.setDirection(Servo.Direction.FORWARD);
         if (ballArmServo!=null) ballArmServo.setDirection(Servo.Direction.FORWARD);
 
-        if (getDevice("drivebot") != null) {
-            prodbot = false;
-        } else {
-            prodbot = true;
-        }
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
         if (prodbot) {
@@ -355,30 +352,32 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             mecanumMove(lsx,lsy,rsx);
 
             if (gripperLiftMotor!=null) {
-                if (raiseLowerLift!=0.0) {
-                    if (gripperLiftMotor.getMode()!=DcMotor.RunMode.RUN_WITHOUT_ENCODER)
-                        gripperLiftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                    gripperLiftMotor.setPower(raiseLowerLift);
+                if (raiseLowerLift > 0.0) {
+                    gripperLiftMotor.setPower(-1.0); //if trigger is positive, raise lift
+                } else if (raiseLowerLift < 0.0) {
+                    gripperLiftMotor.setPower(1.0); //if trigger is negative, lower lift
                 } else {
-                    if (height1 || height2 || height3 || height4) {
-                        //we're assuming the encoder was zeroed at the bottom before the op mode started (and has tracked changes)
-                        if (gripperLiftMotor.getMode()!=DcMotor.RunMode.RUN_TO_POSITION) {
-                            gripperLiftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                        }
-                        if (height1) gripperLiftMotor.setTargetPosition(heightPosition1);
-                        if (height2) gripperLiftMotor.setTargetPosition(heightPosition2);
-                        if (height3) gripperLiftMotor.setTargetPosition(heightPosition3);
-                        if (height4) gripperLiftMotor.setTargetPosition(heightPosition4);
-                        gripperLiftMotor.setPower(1.0);
+                    gripperLiftMotor.setPower(0.0); //this should do motor braking
+                }
 
-                        while (opModeIsActive() && gripperLiftMotor.isBusy()) { //this freezes until it's in position -- might want to do this during other things
-                            telemetry.addData("LiftPosition",  "Running To %7d At %7d",gripperLiftMotor.getTargetPosition(),gripperLiftMotor.getCurrentPosition());
-                            telemetry.update();
-                        }
-
-                        gripperLiftMotor.setPower(0);
-                        gripperLiftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                if (height1 || height2 || height3 || height4) {
+                    //we're assuming the encoder was zeroed at the bottom before the op mode started (and has tracked changes)
+                    if (gripperLiftMotor.getMode() != DcMotor.RunMode.RUN_TO_POSITION) {
+                        gripperLiftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                     }
+                    if (height1) gripperLiftMotor.setTargetPosition(heightPosition1);
+                    if (height2) gripperLiftMotor.setTargetPosition(heightPosition2);
+                    if (height3) gripperLiftMotor.setTargetPosition(heightPosition3);
+                    if (height4) gripperLiftMotor.setTargetPosition(heightPosition4);
+                    gripperLiftMotor.setPower(1.0);
+
+                    while (opModeIsActive() && gripperLiftMotor.isBusy()) { //this freezes until it's in position -- might want to do this during other things
+                        telemetry.addData("LiftPosition", "Running To %7d At %7d", gripperLiftMotor.getTargetPosition(), gripperLiftMotor.getCurrentPosition());
+                        telemetry.update();
+                    }
+
+                    gripperLiftMotor.setPower(0);
+                    gripperLiftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                 }
             }
 
