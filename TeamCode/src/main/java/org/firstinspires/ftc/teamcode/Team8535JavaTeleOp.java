@@ -400,6 +400,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                     vacuumMotor.setPower(0.0);
                 }
             }
+
             if (armExtendMotor!=null) {
                 if (extendRelicArm && !retractRelicArm) {
                     armExtendMotor.setPower(1.0);
@@ -408,16 +409,21 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                 } else {
                     armExtendMotor.setPower(0.0);
                 }
-
             }
 
-            if (relicLiftServo!=null) {
+            if (relicLiftServo!=null) { //this should do stepping when raise/lower buttons are pressed (coming soon)
                 if (raiseRelic && !lowerRelic) relicLiftServo.setPosition(1.0);
                 if (lowerRelic && !raiseRelic) relicLiftServo.setPosition(0.0);
             }
 
             if (armLiftMotor!=null) {
-                armLiftMotor.setPower(raiseLowerLift);
+                if (lowerRaiseArm > 0.0) {
+                    armLiftMotor.setPower(1.0); //if trigger is positive, raise arm
+                } else if (lowerRaiseArm < 0.0) {
+                    armLiftMotor.setPower(-1.0); //if trigger is negative, lower rm
+                } else {
+                    armLiftMotor.setPower(0.0); //this should do motor braking
+                }
             }
 
             if (gripperLeftServo!=null) {
@@ -428,7 +434,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                 gripperRightServo.setPosition(rightClamp);
             }
 
-            if (vacuumReleaseServo !=null) {
+            if (vacuumReleaseServo!=null) {
                 vacuumReleaseServo.setPosition(vacuumRelease);
             }
 
