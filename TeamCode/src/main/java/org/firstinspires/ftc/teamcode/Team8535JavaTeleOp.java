@@ -321,10 +321,11 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             bottomColorSensor.enableLed(true);
         }
 
-        lastLoopTime=runtime.time();
+        currentLoopTime=runtime.time();
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            lastLoopTime=currentLoopTime; //the loop timing difference gives our actively stepping servos the time to use with their speed multipliers
             currentLoopTime=runtime.time();
             telemetry.addData("Loop Time",(currentLoopTime-lastLoopTime)); //hopefully reasonable speed for movement determinations
 
@@ -511,8 +512,6 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             // Show the elapsed game time
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.update();
-
-            lastLoopTime=currentLoopTime;
         }
     }
 }
