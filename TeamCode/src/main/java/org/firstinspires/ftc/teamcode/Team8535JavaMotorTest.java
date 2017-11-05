@@ -32,6 +32,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.I2cDevice;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
@@ -57,60 +58,42 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 @TeleOp(name="JavaMotorTest", group="Linear Opmode")
 public class Team8535JavaMotorTest extends LinearOpMode {
 
-    private static boolean PROD_BOT=true; //set to true to match motor directions on prod bot
-
-    //VuMarks
-    VuforiaLocalizer vuforia;
+    private boolean prodbot = false;
 
     // Declare OpMode members.
-    private float speedFactor = 1.0f;
     private ElapsedTime runtime = new ElapsedTime();
     private DcMotor lf = null;
     private DcMotor rf = null;
     private DcMotor lb = null;
     private DcMotor rb = null;
 
-    //private DcMotor vacuum=null;
-    //private DcMotor vacuumRelease=null; //this will be eliminated or change to standard servo
-
-    private static boolean SHOW_CAMERA = false; //whether to show the camera on the phone screen
-    private static boolean JOYSTICK_SCALING = true; //whether to scale joystick values by cubing value (more precision for small movements)
+    private I2cDevice getDevice(String deviceName) { //these could be made generic using type notation
+        try {
+            return (hardwareMap.get(I2cDevice.class, deviceName));
+        } catch (Exception e) {
+            return (null);
+        }
+    }
 
     @Override
     public void runOpMode() {
 
-        VuforiaLocalizer.Parameters parameters = null;
-        if (SHOW_CAMERA) {
-            int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-            parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
-        } else {
-            parameters = new VuforiaLocalizer.Parameters();
-        }
-
-        parameters.vuforiaLicenseKey = "Ab01nl7/////AAAAGeQnfaGoXUZ+i+4cRvO5jFNG9p0WO71bT/iVJiyCR32g6mazT1g6HiB2OmYcVTUVAWWGDIMKhNlGGjHAS/MCdmgK9VR4jbeUxBD0HT1xXebg7sD5+o2+4HSKheLgOnGdjVMwuUZK/3pnthEADVlvUZsDtrIxxYKBQEQSTf3uWP6vYFTax3kjPSIczUrmjUh6HhIhEm8NcrP4FgE/IjOr4xABtOU8QK4pdMDSxI5UatrszXVfs5jeUJ1gsciJBhwb95YN3e5Eqp/Mhr0K4iqdfGlPZLSYsm2757vfocnlHXaCM1jaU6jM42f8PR0/FLqZX9nIDSbtj+LAo9ufa6qi5/gnW3Ps3Vm1xpiGr7Tp10WN";
-        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK; //use the back camera for VuForia
-        vuforia = ClassFactory.createVuforiaLocalizer(parameters);
-        VuforiaTrackables relicTrackables = this.vuforia.loadTrackablesFromAsset("RelicVuMark");
-        VuforiaTrackable relicTemplate = relicTrackables.get(0);
-        relicTemplate.setName("relicVuMarkTemplate");
-
         telemetry.addData("Status", "Initialized");
+        if (getDevice("drivebot") != null) {
+            prodbot = false;
+            telemetry.addData("Bot", "DriveBot");
+        } else {
+            prodbot = true;
+            telemetry.addData("Bot", "ProdBot");
+        }
         telemetry.update();
 
-        // Initialize the hardware variables. Note that the strings used here as parameters
-        // to 'get' must correspond to the names assigned during the robot configuration
-        // step (using the FTC Robot Controller app on the phone).
         lf = hardwareMap.get(DcMotor.class, "lf");
         rf = hardwareMap.get(DcMotor.class, "rf");
         lb = hardwareMap.get(DcMotor.class, "lb");
-        rb = hardwareMap.get(DcMotor.class, "rb"); //new comment
+        rb = hardwareMap.get(DcMotor.class, "rb");
 
-        //vacuum = hardwareMap.get(DcMotor.class, "vacuum");
-        //vacuumRelease  = hardwareMap.get(DcMotor.class, "release");
-
-        // Most robots need the motor on one side to be reversed to drive forward
-        // Reverse the motor that runs backwards when connected directly to the battery
-        if (PROD_BOT) {
+        if (prodbot) {
             lf.setDirection(DcMotor.Direction.REVERSE);  //reverse
             rf.setDirection(DcMotor.Direction.REVERSE);  //forward
             lb.setDirection(DcMotor.Direction.REVERSE);  //reverse
@@ -131,89 +114,38 @@ public class Team8535JavaMotorTest extends LinearOpMode {
         lb.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rb.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        lf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); //runs again
+        lf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         lb.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rb.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        relicTrackables.activate();
-
-        // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
             if (gamepad1.x) { //stop and look for vumarks if X key is down
                 lf.setPower(gamepad1.left_stick_x);
-
+            } else {
+                lf.setPower(0.0);
             }
 
             if (gamepad1.y) { //stop and look for vumarks if Y key is down
                 rf.setPower(gamepad1.left_stick_x);
-
+            } else {
+                rf.setPower(0.0);
             }
 
             if (gamepad1.b) { //stop and look for vumarks if B key is down
                 rb.setPower(gamepad1.left_stick_x);
-
+            } else {
+                rb.setPower(0.0);
             }
 
             if (gamepad1.a) { //stop and look for vumarks if A key is down
                 lb.setPower(gamepad1.left_stick_x);
+            } else {
+                lb.setPower(0.0);
             }
         }
 
     }
 
 }
-
-        /*else {
-
-                double lsy=gamepad1.left_stick_y;
-                double lsx=gamepad1.left_stick_x;
-                double rsx=gamepad1.right_stick_x;
-
-                if (JOYSTICK_SCALING) {
-                    lsy=Math.pow(lsy,5.0);
-                    lsx=Math.pow(lsx,5.0);
-                    rsx=Math.pow(rsx,5.0);
-                }
-
-                double r = Math.sqrt(lsy*lsy+lsx*lsx);
-                double robotAngle = Math.atan2(-1*lsx,lsy) - Math.PI / 4;
-                double rightX = -1 * rsx;
-                final double v1 = r * Math.cos(robotAngle) + rightX;
-                final double v2 = r * Math.sin(robotAngle) - rightX;
-                final double v3 = r * Math.sin(robotAngle) + rightX;
-                final double v4 = r * Math.cos(robotAngle) - rightX;
-
-                double comp1=r*Math.cos(robotAngle); //look at hypothesis that turn component overwhelms vector component
-                double comp2=rightX;
-
-                telemetry.addData("Speed/Angle","Speed=%.2f Angle=%.2f",r,robotAngle);
-                telemetry.addData("Comp1/Comp2","Comp1=%.2f Comp2=%.2f",comp1,comp2);
-
-                lf.setPower(v1);
-                rf.setPower(v2);
-                lb.setPower(v3);
-                rb.setPower(v4);
-
-                double vpower = gamepad2.right_stick_y;
-                double rpower = gamepad2.right_stick_x;
-
-                //vacuum.setPower(vpower);
-                //vacuumRelease.setPower(rpower);
-            }
-
-            int lfpos=lf.getCurrentPosition(); //show positions to help with auto mode
-            int rfpos=rf.getCurrentPosition();
-            int lbpos=lb.getCurrentPosition();
-            int rbpos=rb.getCurrentPosition();
-
-            telemetry.addData("Positions","lf=%d rf=%d lb=%d rb=%d",lfpos,rfpos,lbpos,rbpos);
-
-            // Show the elapsed game time
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.update();
-        }
-    }
-}
-*/
