@@ -366,7 +366,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
             double lsy = forwardBack * speedFactor;
             double lsx = leftRight * speedFactor;
-            double rsx = ccwCwRotate * (speedFactor * 0.85);
+            double rsx = ccwCwRotate;
 
             //this takes care of the movement commands by calculating use of the mecanum wheels
             mecanumMove(lsx,lsy,rsx);
