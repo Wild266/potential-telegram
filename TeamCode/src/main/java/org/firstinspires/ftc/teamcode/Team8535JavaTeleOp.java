@@ -85,6 +85,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
     private double vacuumTime=0.0;
+    private double lastLoopTime=0.0;
+    private double currentLoopTime=0.0;
 
     //Drive Motors
     private DcMotor lf = null;
@@ -96,6 +98,11 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private DcMotor gripperLiftMotor = null;
     private Servo gripperLeftServo = null;
     private Servo gripperRightServo = null;
+
+    private double gripperLeftPosition = 0.5; //initial position of left gripper (tune this)
+    private double gripperRightPosition = 0.5; //initial position of right gripper (tune this)
+    private double gripperLeftSpeed = 0.5; //range per second
+    private double gripperRightSpeed = 0.5; //range per second
 
     private int heightPosition1 = 0; //probably too low but need calibration
     private int heightPosition2 = 100;
@@ -109,9 +116,15 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private Servo relicLiftServo = null;
     private Servo vacuumReleaseServo = null;
 
+    private double relicLiftPosition = 0.5; //initial position (tune this)
+    private double relicLiftSpeed = 0.5;
+
     //Ball Arm
     private Servo ballArmServo = null;
     private ColorSensor ballColorSensor = null;
+
+    private double ballArmPosition = 0.8; //initial position of ball arm servo (tune this)
+    private double ballArmSpeed = 0.5; //range per second
 
     //Base
     private ColorSensor bottomColorSensor = null;
@@ -308,8 +321,12 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             bottomColorSensor.enableLed(true);
         }
 
+        lastLoopTime=runtime.time();
+
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            currentLoopTime=runtime.time();
+            telemetry.addData("Loop Time",(currentLoopTime-lastLoopTime)); //hopefully reasonable speed for movement determinations
 
             //translate some gamepad controls to variables
 
@@ -326,6 +343,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             double raiseLowerLift = gamepad2.left_stick_y;
             double leftClamp = gamepad2.left_trigger;
             double rightClamp = gamepad2.right_trigger;
+            boolean leftRelease = gamepad2.left_bumper;
+            boolean rightRelease = gamepad2.right_bumper;
             boolean height1 = gamepad2.x; //lowest preset gripper height
             boolean height2 = gamepad2.a;
             boolean height3 = gamepad2.b;
@@ -411,9 +430,16 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                 }
             }
 
-            if (relicLiftServo!=null) { //this should do stepping when raise/lower buttons are pressed (coming soon)
-                if (raiseRelic && !lowerRelic) relicLiftServo.setPosition(1.0);
-                if (lowerRelic && !raiseRelic) relicLiftServo.setPosition(0.0);
+            if (relicLiftServo!=null) {
+                if (raiseRelic) { //step it up
+                    relicLiftPosition+=relicLiftSpeed*(currentLoopTime-lastLoopTime);
+                    if (relicLiftPosition>1.0) relicLiftPosition=1.0;
+                } else if (lowerRelic) { //step it down
+                    relicLiftPosition-=relicLiftSpeed*(currentLoopTime-lastLoopTime);
+                    if (relicLiftPosition<0.0) relicLiftPosition=0.0;
+                }
+                relicLiftServo.setPosition(relicLiftPosition);
+                telemetry.addData("Relic Lift",relicLiftPosition);
             }
 
             if (armLiftMotor!=null) {
@@ -427,20 +453,43 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             }
 
             if (gripperLeftServo!=null) {
-                gripperLeftServo.setPosition(leftClamp);
+                if (leftClamp>0.0) { //step it up
+                    gripperLeftPosition+=gripperLeftSpeed*(currentLoopTime-lastLoopTime);
+                    if (gripperLeftPosition>1.0) gripperLeftPosition=1.0;
+                } else if (leftRelease) { //step it down
+                    gripperLeftPosition-=gripperLeftSpeed*(currentLoopTime-lastLoopTime);
+                    if (gripperLeftPosition<0.0) gripperLeftPosition=0.0;
+                }
+                gripperLeftServo.setPosition(gripperLeftPosition);
+                telemetry.addData("Left Gripper",gripperLeftPosition);
             }
 
             if (gripperRightServo!=null) {
-                gripperRightServo.setPosition(rightClamp);
+                if (rightClamp>0.0) { //step it up
+                    gripperRightPosition+=gripperRightSpeed*(currentLoopTime-lastLoopTime);
+                    if (gripperRightPosition>1.0) gripperRightPosition=1.0;
+                } else if (leftRelease) { //step it down
+                    gripperRightPosition-=gripperRightSpeed*(currentLoopTime-lastLoopTime);
+                    if (gripperRightPosition<0.0) gripperRightPosition=0.0;
+                }
+                gripperRightServo.setPosition(gripperRightPosition);
+                telemetry.addData("Right Gripper",gripperLeftPosition);
             }
 
             if (vacuumReleaseServo!=null) {
-                vacuumReleaseServo.setPosition(vacuumRelease);
+                vacuumReleaseServo.setPosition(vacuumRelease); //need more info on position of servo before changing this
             }
 
             if (ballArmServo !=null) {
-                if (lowerBallArm && !raiseBallArm) ballArmServo.setPosition(1.0);
-                if (raiseBallArm && !lowerBallArm) ballArmServo.setPosition(0);
+                if (raiseBallArm) { //step it up
+                    ballArmPosition+=ballArmSpeed*(currentLoopTime-lastLoopTime);
+                    if (ballArmPosition>1.0) ballArmPosition=1.0;
+                } else if (lowerBallArm) { //step it down
+                    ballArmPosition-=ballArmSpeed*(currentLoopTime-lastLoopTime);
+                    if (ballArmPosition<0.0) ballArmPosition=0.0;
+                }
+                ballArmServo.setPosition(ballArmPosition);
+                telemetry.addData("Ball Arm",ballArmPosition);
             }
 
             if (ballColorSensor!=null)
@@ -462,6 +511,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             // Show the elapsed game time
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.update();
+
+            lastLoopTime=currentLoopTime;
         }
     }
 }
