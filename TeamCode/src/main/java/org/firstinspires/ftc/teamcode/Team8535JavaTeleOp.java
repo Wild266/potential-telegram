@@ -483,7 +483,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                 if (rightClamp>0.2) { //step it up
                     gripperRightPosition+=gripperRightSpeed*(currentLoopTime-lastLoopTime);
                     if (gripperRightPosition>1.0) gripperRightPosition=1.0;
-                } else if (leftRelease) { //step it down
+                } else if (rightRelease) { //step it down
                     gripperRightPosition-=gripperRightSpeed*(currentLoopTime-lastLoopTime);
                     if (gripperRightPosition<0.0) gripperRightPosition=0.0;
                 }
