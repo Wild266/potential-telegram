@@ -101,8 +101,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
     private double gripperLeftPosition = 0.5; //initial position of left gripper (tune this)
     private double gripperRightPosition = 0.5; //initial position of right gripper (tune this)
-    private double gripperLeftSpeed = 0.5; //range per second
-    private double gripperRightSpeed = 0.5; //range per second
+    private double gripperLeftSpeed = 2.0; //range per second
+    private double gripperRightSpeed = 2.0; //range per second
 
     private int heightPosition1 = 0; //probably too low but need calibration
     private int heightPosition2 = 100;
@@ -230,13 +230,25 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
         gripperLiftMotor = getMotor("gripper_lift");
         gripperLeftServo = getServo("gripper_left");
+        if (gripperLeftServo != null) {
+            gripperLeftServo.setPosition(gripperLeftPosition);
+        }
         gripperRightServo = getServo("gripper_right");
+        if (gripperRightServo != null) {
+            gripperRightServo.setPosition(gripperRightPosition);
+        }
         vacuumMotor = getMotor("vacuum");
         armExtendMotor = getMotor("arm_extend");
         armLiftMotor = getMotor("arm_lift");
         relicLiftServo = getServo("relic_lift");
+        if (relicLiftServo != null) {
+            relicLiftServo.setPosition(relicLiftPosition);
+        }
         vacuumReleaseServo = getServo("vacuum_release");
         ballArmServo = getServo("ball_arm");
+        if (ballArmServo !=null) {
+            ballArmServo.setPosition(ballArmPosition);
+        }
         ballColorSensor = getColorSensor("ball_color");
         bottomColorSensor = getColorSensor("bottom_color");
         if (bottomColorSensor!=null) {
@@ -335,7 +347,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             double forwardBack = gamepad1.left_stick_y;
             double leftRight = gamepad1.left_stick_x;
             double ccwCwRotate = gamepad1.right_stick_x;
-            boolean slowMode = (gamepad1.left_trigger > 0.0);
+            boolean slowMode = (gamepad1.left_trigger > 0.2);
             boolean lowerBallArm = (gamepad1.dpad_down);
             boolean raiseBallArm = (gamepad1.dpad_up);
             double vacuumRelease = gamepad1.right_trigger; //couldn't find room on gamepad2
@@ -372,14 +384,16 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             mecanumMove(lsx,lsy,rsx);
 
             if (gripperLiftMotor!=null) {
-                if (raiseLowerLift > 0.0) {
+                if (raiseLowerLift > 0.2) {
                     gripperLiftMotor.setPower(-1.0); //if trigger is positive, raise lift
-                } else if (raiseLowerLift < 0.0) {
+                    telemetry.addData("Gripper Lift","Raising");
+                } else if (raiseLowerLift < -0.2) {
                     gripperLiftMotor.setPower(1.0); //if trigger is negative, lower lift
+                    telemetry.addData("Gripper Lift", "Lowering");
                 } else {
                     gripperLiftMotor.setPower(0.0); //this should do motor braking
+                    telemetry.addData("Gripper Lift", "Stopped");
                 }
-
                 if (height1 || height2 || height3 || height4) {
                     //we're assuming the encoder was zeroed at the bottom before the op mode started (and has tracked changes)
                     if (gripperLiftMotor.getMode() != DcMotor.RunMode.RUN_TO_POSITION) {
@@ -444,9 +458,9 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             }
 
             if (armLiftMotor!=null) {
-                if (lowerRaiseArm > 0.0) {
+                if (lowerRaiseArm > 0.2) {
                     armLiftMotor.setPower(1.0); //if trigger is positive, raise arm
-                } else if (lowerRaiseArm < 0.0) {
+                } else if (lowerRaiseArm < -0.2) {
                     armLiftMotor.setPower(-1.0); //if trigger is negative, lower rm
                 } else {
                     armLiftMotor.setPower(0.0); //this should do motor braking
@@ -454,7 +468,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             }
 
             if (gripperLeftServo!=null) {
-                if (leftClamp>0.0) { //step it up
+                if (leftClamp>0.2) { //step it up
                     gripperLeftPosition+=gripperLeftSpeed*(currentLoopTime-lastLoopTime);
                     if (gripperLeftPosition>1.0) gripperLeftPosition=1.0;
                 } else if (leftRelease) { //step it down
@@ -466,7 +480,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             }
 
             if (gripperRightServo!=null) {
-                if (rightClamp>0.0) { //step it up
+                if (rightClamp>0.2) { //step it up
                     gripperRightPosition+=gripperRightSpeed*(currentLoopTime-lastLoopTime);
                     if (gripperRightPosition>1.0) gripperRightPosition=1.0;
                 } else if (rightRelease) { //step it down
