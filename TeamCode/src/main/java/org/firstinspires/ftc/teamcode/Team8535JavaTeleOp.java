@@ -115,6 +115,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private DcMotor armLiftMotor = null;
     private Servo relicLiftServo = null;
     private Servo vacuumReleaseServo = null;
+    private double vacuumReleasePosition = 0.5;
 
     private double relicLiftPosition = 0.5; //initial position (tune this)
     private double relicLiftSpeed = 0.5;
@@ -229,31 +230,26 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         //initialize motors/servos/sensors that may vary between bot versions
 
         gripperLiftMotor = getMotor("gripper_lift");
+        if (gripperLiftMotor!=null) gripperLiftMotor.setPower(0.0);
         gripperLeftServo = getServo("gripper_left");
-        if (gripperLeftServo != null) {
-            gripperLeftServo.setPosition(gripperLeftPosition);
-        }
+        if (gripperLeftServo != null) gripperLeftServo.setPosition(gripperLeftPosition);
         gripperRightServo = getServo("gripper_right");
-        if (gripperRightServo != null) {
-            gripperRightServo.setPosition(gripperRightPosition);
-        }
+        if (gripperRightServo != null) gripperRightServo.setPosition(gripperRightPosition);
         vacuumMotor = getMotor("vacuum");
+        if (vacuumMotor!=null) vacuumMotor.setPower(0.0);
         armExtendMotor = getMotor("arm_extend");
+        if (armExtendMotor!=null) armExtendMotor.setPower(0.0);
         armLiftMotor = getMotor("arm_lift");
+        if (armLiftMotor!=null) armLiftMotor.setPower(0.0);
         relicLiftServo = getServo("relic_lift");
-        if (relicLiftServo != null) {
-            relicLiftServo.setPosition(relicLiftPosition);
-        }
+        if (relicLiftServo != null) relicLiftServo.setPosition(relicLiftPosition);
         vacuumReleaseServo = getServo("vacuum_release");
+        if (vacuumReleaseServo!=null) vacuumReleaseServo.setPosition(vacuumReleasePosition);
         ballArmServo = getServo("ball_arm");
-        if (ballArmServo !=null) {
-            ballArmServo.setPosition(ballArmPosition);
-        }
+        if (ballArmServo !=null) ballArmServo.setPosition(ballArmPosition);
         ballColorSensor = getColorSensor("ball_color");
         bottomColorSensor = getColorSensor("bottom_color");
-        if (bottomColorSensor!=null) {
-            bottomColorSensor.setI2cAddress(I2cAddr.create7bit(0x48)); //we believe these are 7bit addresses
-        }
+        if (bottomColorSensor!=null) bottomColorSensor.setI2cAddress(I2cAddr.create7bit(0x48)); //we believe these are 7bit addresses
         gyro = getGyro("gyro");
         if (gyro!=null) { //just rename the gyro in the resource file to run without it
             gyro.setI2cAddress(I2cAddr.create7bit(0x10)); //we believe these are 7bit addresses
@@ -270,7 +266,6 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             telemetry.clear(); telemetry.update();
             gyro.resetZAxisIntegrator();
         }
-
         if (gripperLeftServo!=null) gripperLeftServo.scaleRange(0.0,1.0); //tune these later to desired range
         if (gripperRightServo!=null) gripperRightServo.scaleRange(0.0,1.0);
         if (vacuumReleaseServo!=null) vacuumReleaseServo.scaleRange(0.0,1.0);
@@ -394,6 +389,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                     gripperLiftMotor.setPower(0.0); //this should do motor braking
                     telemetry.addData("Gripper Lift", "Stopped");
                 }
+                /* commenting this out until at least the above manual movement works
                 if (height1 || height2 || height3 || height4) {
                     //we're assuming the encoder was zeroed at the bottom before the op mode started (and has tracked changes)
                     if (gripperLiftMotor.getMode() != DcMotor.RunMode.RUN_TO_POSITION) {
@@ -413,6 +409,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                     gripperLiftMotor.setPower(0);
                     gripperLiftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                 }
+                */
             }
 
             if (vacuumMotor!=null) {
