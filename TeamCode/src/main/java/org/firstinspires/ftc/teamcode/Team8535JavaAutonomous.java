@@ -26,13 +26,10 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.I2cAddr;
@@ -58,8 +55,11 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     public static final int SIDE_LEFT=1;
     public static final int SIDE_RIGHT=2;
 
-    public static double BALL_ARM_UP=1.0; //fill these in after testing on prod bot
-    public static double BALL_ARM_DOWN=0.0; //fill these in after testing on prod bot
+    public static final int BALL_RED=1;
+    public static final int BALL_BLUE=2;
+
+    public static double BALL_ARM_UP=0.8; //fill these in after testing on prod bot
+    public static double BALL_ARM_DOWN=0.2; //fill these in after testing on prod bot
 
     //VuMarks
     VuforiaLocalizer vuforia;
@@ -108,6 +108,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     //Ball Color Sensor
     ColorSensor ballColorSensor; //we'll need a color sensor to detect ball color
     Servo ballArmServo; //we'll need a servo to raise/lower the ball arm
+    private int ballColor=0;
 
     //Gyro Sensor
     ModernRoboticsI2cGyro gyro; //a gyro would be really useful
@@ -124,7 +125,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     private static final int STATE_SENSE_BALL_COLOR=3; //sensing the ball's color
     private static final int STATE_ROTATE_BALL_OFF=4; //rotating the arm to knock the ball off
     private static final int STATE_MOVE_ARM_UP=5; // moving arm up
-    private static final int STATE_ROTATE_ARM_BACK=6; //rotating the arm back to the way it was
+    private static final int STATE_ROTATE_BACK=6; //rotating the arm back to the way it was
     private static final int STATE_MOVING=7; //moving to cryptobox
     private static final int STATE_AT_CRYPTOBOX=8; //at cryptobox
     private static final int STATE_ROTATE_TO_CRYPTOBOX=9; //rotate the robot to face the cryptobox
@@ -211,6 +212,24 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         rf.setPower(v2);
         lb.setPower(v3);
         rb.setPower(v4);
+    }
+
+    private void gyroTurn(int degrees, ElapsedTime runtime, double maxTime) {
+        int current=gyro.getHeading();
+        int target=current+degrees;
+        double startTime=runtime.time();
+        if (degrees>0) {
+            mecanumMove(0,0,-0.5);
+            while(gyro.getHeading()<target) {
+                if ((runtime.time()-startTime)>maxTime) break;
+            }
+        } else {
+            mecanumMove(0,0,0.5);
+            while(gyro.getHeading()>target) {
+                if ((runtime.time()-startTime)>maxTime) break;
+            }
+        }
+        mecanumMove(0,0,0);
     }
 
     @Override
@@ -339,56 +358,83 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     vuMark = RelicRecoveryVuMark.from(relicTemplate);
                     if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
                         telemetry.addData("VuMark", "%s visible", vuMark);
-                        time = runtime.milliseconds();
-                        if (side == SIDE_LEFT) {
-                            mecanumMove(0, 1, 0);
-                        } else {
-                            mecanumMove(0, -1, 0);
-                        }
+                        state = STATE_MOVE_ARM_DOWN;
                     }
                     break;
 
                 case STATE_MOVE_ARM_DOWN:
                     ballArmServo.setPosition(BALL_ARM_DOWN);
-
+                    state = STATE_SENSE_BALL_COLOR;
                     //ballArmServo.setPosition(BALL_ARM_DOWN);
                     //need to wait a bit -- use technique we used with move
                     //should move servo arm to down position
                     break;
 
                 case STATE_SENSE_BALL_COLOR:
+                    telemetry.addData("BallColor","R=%d G=%d B=%d A=%d", ballColorSensor.red(), ballColorSensor.green(), ballColorSensor.blue(), ballColorSensor.alpha());
+                    if ((ballColorSensor.red()!=0 && ballColorSensor.red()!=255)
+                        || ballColorSensor.blue()!=0 && ballColorSensor.blue()!=255) {
+                        if (ballColorSensor.red()>ballColorSensor.blue()) {
+                            ballColor=BALL_RED;
+                        } else if (ballColorSensor.blue()>ballColorSensor.red()) {
+                            ballColor=BALL_BLUE;
+                        }
+                        state=STATE_ROTATE_BALL_OFF;
+                    } else {
+                        state=STATE_MOVE_ARM_UP;
+                    }
+                    //blue alliance: (facing toward shelves) if blue then rotate 20, if red then rotate -20
+                    //red alliance: (facing away from shelves) if blue then rotate 20, if red then rotate -20
                     //should read the color sensor and record color (using comparison of blue to red)
                     break;
 
                 case STATE_ROTATE_BALL_OFF:
+                    if (ballColor == BALL_BLUE) {
+                        gyroTurn(20, runtime, 2.0);
+                    } else if (ballColor == BALL_RED) {
+                        gyroTurn(-20, runtime, 2.0);
+                    }
+                    state=STATE_MOVE_ARM_UP;
                     //should rotate bot CW or CCW depending on alliance and color of ball sensed
                     //mecanumMove(0, 0, 0.5); //a minus or plus move and for a time (or use a gyro)
                     break;
 
                 case STATE_MOVE_ARM_UP:
+                    ballArmServo.setPosition(BALL_ARM_UP);
+                    state = STATE_ROTATE_BACK;
                     //ballArmServo.setPosition(BALL_ARM_UP);
                     //need to wait a bit -- use technique we used with move
                     //should move servo arm to up position
                     break;
 
-                case STATE_ROTATE_ARM_BACK:
+                case STATE_ROTATE_BACK:
                     //should rotate bot opposite of previous rotate step
+                    if (ballColor == BALL_BLUE) {
+                        gyroTurn(-20, runtime, 2.0);
+                    } else if (ballColor == BALL_RED) {
+                        gyroTurn(20, runtime, 2.0);
+                    }
+                    state=STATE_MOVING;
                     break;
 
                 case STATE_MOVING:
                     //should move by time, encoders, or inertial
+                    if (side == SIDE_LEFT) {
+                        mecanumMove(0, 1, 0);
+                    } else {
+                        mecanumMove(0, -1, 0);
+                    }
+                    time = runtime.milliseconds();
                     telemetry.addData("Moving", "%s units", distMap.get(vuMark));
                     if ((runtime.milliseconds() - time) > distMap.get(vuMark)) {
-                        state = STATE_AT_CRYPTOBOX; //after a second were at cryptobox?
+                        state = STATE_ROTATE_TO_CRYPTOBOX; //after a second were at cryptobox?
                     }
 
                     break;
 
-                case STATE_AT_CRYPTOBOX:
-                    mecanumMove(0, 0, 0); //stop
-                    break;
-
                 case STATE_ROTATE_TO_CRYPTOBOX:
+                    gyroTurn(-90,runtime,2.0);
+                    state=PUSH_BLOCK_TO_CRYPTOBOX;
                     //rotate to face cryptobox
                     break;
 
