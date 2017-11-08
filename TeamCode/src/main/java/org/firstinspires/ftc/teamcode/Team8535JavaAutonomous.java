@@ -35,6 +35,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.I2cDevice;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -66,16 +67,49 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     private int alliance;
     private int side;
 
+    private boolean prodbot = false;
+
+    //Speed Factor for Fast/Slow Mode
+    private double speedFactor = 1.0; //default full speed
+
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
+    private double lastLoopTime=0.0;
+    private double currentLoopTime=0.0;
+
+    //Drive Motors
     private DcMotor lf=null;
     private DcMotor rf=null;
     private DcMotor lb=null;
     private DcMotor rb=null;
-    private DcMotor vacuum=null;
 
+    //Front Gripper
+    private DcMotor gripperLiftMotor = null;
+    private Servo gripperLeftServo = null;
+    private Servo gripperRightServo = null;
+
+    private double gripperLeftPosition = 0.5; //initial position of left gripper (tune this)
+    private double gripperRightPosition = 0.5; //initial position of right gripper (tune this)
+    private double gripperLeftClosingSpeed = 4.0; //range per second
+    private double gripperRightClosingSpeed = 4.0; //range per second
+    private double gripperLeftOpeningSpeed = 5.0; //range per second
+    private double gripperRightOpeningSpeed = 5.0; //range per second
+
+    //Ball Arm
+    private Servo ballArmServo2 = null;
+
+    private double ballArmPosition = 0.8;//initial position of ball arm servo (tune this)
+    private double ballArmPosition2 = 0.2;
+    private double ballArmSpeed = 0.5; //range per second
+
+    //Base
+    private ColorSensor bottomColorSensor = null;
+
+    //Ball Color Sensor
     ColorSensor ballColorSensor; //we'll need a color sensor to detect ball color
     Servo ballArmServo; //we'll need a servo to raise/lower the ball arm
+
+    //Gyro Sensor
     ModernRoboticsI2cGyro gyro; //a gyro would be really useful
 
     //private DcMotor vacuum=null;
@@ -199,6 +233,13 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         relicTemplate.setName("relicVuMarkTemplate");
 
         telemetry.addData("Status", "Initialized");
+        if (getDevice("drivebot") != null) {
+            prodbot = false;
+            telemetry.addData("Bot", "DriveBot");
+        } else {
+            prodbot = true;
+            telemetry.addData("Bot", "ProdBot");
+        }
         telemetry.update();
 
         // Initialize the hardware variables. Note that the strings used here as parameters
@@ -209,10 +250,38 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         lb  = hardwareMap.get(DcMotor.class, "lb");
         rb  = hardwareMap.get(DcMotor.class, "rb");
 
-        vacuum = getMotor("vacuum");
-        ballColorSensor = getColorSensor("color_sensor");
-        ballArmServo = getServo("ball_arm_servo");
+        //Gripper
+        gripperLiftMotor = getMotor("gripper_lift");
+        if (gripperLiftMotor!=null) gripperLiftMotor.setPower(0.0);
+        gripperLeftServo = getServo("gripper_left");
+        if (gripperLeftServo != null) gripperLeftServo.setPosition(gripperLeftPosition);
+        gripperRightServo = getServo("gripper_right");
+        if (gripperRightServo != null) gripperRightServo.setPosition(gripperRightPosition);
+
+        //Ball Arm
+        ballArmServo = getServo("ball_arm");
+        if (ballArmServo !=null) ballArmServo.setPosition(ballArmPosition);
+        ballArmServo2 = getServo("ball_arm2");
+        if (ballArmServo2 !=null) ballArmServo2.setPosition(ballArmPosition2);
+        ballColorSensor = getColorSensor("ball_color");
+        bottomColorSensor = getColorSensor("bottom_color");
+        if (bottomColorSensor!=null) bottomColorSensor.setI2cAddress(I2cAddr.create7bit(0x48)); //we believe these are 7bit addresses
         gyro = getGyro("gyro");
+        if (gyro!=null) { //just rename the gyro in the resource file to run without it
+            gyro.setI2cAddress(I2cAddr.create7bit(0x10)); //we believe these are 7bit addresses
+            telemetry.log().add("Gyro Calibrating. Do Not Move!");
+            gyro.calibrate();
+            // Wait until the gyro calibration is complete
+            runtime.reset();
+            while (!isStopRequested() && gyro.isCalibrating())  {
+                telemetry.addData("Calibrating", "%s", Math.round(runtime.seconds())%2==0 ? "|.." : "..|");
+                telemetry.update();
+                sleep(50);
+            }
+            telemetry.log().clear(); telemetry.log().add("Gyro Calibrated. Press Start.");
+            telemetry.clear(); telemetry.update();
+            gyro.resetZAxisIntegrator();
+        }
 
         //vacuumRelease  = hardwareMap.get(DcMotor.class, "release");
 
@@ -220,6 +289,28 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         rf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
         lb.setDirection(DcMotor.Direction.FORWARD); //was FORWARD
         rb.setDirection(DcMotor.Direction.FORWARD); //was FORWARD
+
+        if (gripperLeftServo!=null) gripperLeftServo.setDirection(Servo.Direction.REVERSE); //changed to reverse to flip left gripper servo direction
+        if (gripperRightServo!=null) gripperRightServo.setDirection(Servo.Direction.FORWARD);
+        if (ballArmServo!=null) ballArmServo.setDirection(Servo.Direction.FORWARD);
+        if (ballArmServo2!=null) ballArmServo2.setDirection(Servo.Direction.REVERSE);
+
+        if (prodbot) {
+            lf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
+            rf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
+            lb.setDirection(DcMotor.Direction.REVERSE); //was FORWARD
+            rb.setDirection(DcMotor.Direction.FORWARD); //was FORWARD
+
+            if (gripperLiftMotor!=null) gripperLiftMotor.setDirection(DcMotor.Direction.FORWARD);
+
+        } else {
+            lf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
+            rf.setDirection(DcMotor.Direction.FORWARD); //was REVERSE
+            lb.setDirection(DcMotor.Direction.REVERSE); //was FORWARD
+            rb.setDirection(DcMotor.Direction.FORWARD); //was FORWARD
+
+            if (gripperLiftMotor!=null) gripperLiftMotor.setDirection(DcMotor.Direction.FORWARD);
+        }
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
@@ -258,6 +349,8 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     break;
 
                 case STATE_MOVE_ARM_DOWN:
+                    ballArmServo.setPosition(BALL_ARM_DOWN);
+
                     //ballArmServo.setPosition(BALL_ARM_DOWN);
                     //need to wait a bit -- use technique we used with move
                     //should move servo arm to down position
