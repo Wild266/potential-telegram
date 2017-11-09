@@ -76,6 +76,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     private ElapsedTime runtime = new ElapsedTime();
     private double lastLoopTime=0.0;
     private double currentLoopTime=0.0;
+    private double lastHold=0.0;
 
     //Drive Motors
     private DcMotor lf=null;
@@ -186,6 +187,11 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         }
     }
 
+    private void holdup(ElapsedTime time) {
+        telemetry.update();
+        while(!gamepad1.x && (time.time()-lastHold)>0.2) {};
+        lastHold=time.time();
+    }
     /**
      * Set motors for a mecanum move
      * @param lsx left stick x (left/right)
@@ -201,8 +207,8 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         }
 
         double r = Math.sqrt(lsy*lsy+lsx*lsx);
-        double robotAngle = Math.atan2(-1*lsx,lsy) - Math.PI / 4;
-        double rightX = -1 * rsx;
+        double robotAngle = Math.atan2(-1*lsy,lsx) - Math.PI / 4;
+        double rightX = rsx;
         final double v1 = r * Math.cos(robotAngle) + rightX;
         final double v2 = r * Math.sin(robotAngle) - rightX;
         final double v3 = r * Math.sin(robotAngle) + rightX;
@@ -219,13 +225,17 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         int target=current+degrees;
         double startTime=runtime.time();
         if (degrees>0) {
-            mecanumMove(0,0,-0.5);
+            mecanumMove(0,0,-0.4);
             while(gyro.getHeading()<target) {
+                telemetry.addData("Turning",gyro.getHeading());
+                telemetry.update();
                 if ((runtime.time()-startTime)>maxTime) break;
             }
         } else {
-            mecanumMove(0,0,0.5);
+            mecanumMove(0,0,0.4);
             while(gyro.getHeading()>target) {
+                telemetry.addData("Turning",gyro.getHeading());
+                telemetry.update();
                 if ((runtime.time()-startTime)>maxTime) break;
             }
         }
@@ -284,10 +294,10 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         if (ballArmServo2 !=null) ballArmServo2.setPosition(ballArmPosition2);
         ballColorSensor = getColorSensor("ball_color");
         bottomColorSensor = getColorSensor("bottom_color");
-        if (bottomColorSensor!=null) bottomColorSensor.setI2cAddress(I2cAddr.create7bit(0x48)); //we believe these are 7bit addresses
+        if (bottomColorSensor!=null) bottomColorSensor.setI2cAddress(I2cAddr.create8bit(0x48)); //we believe these are 7bit addresses
         gyro = getGyro("gyro");
         if (gyro!=null) { //just rename the gyro in the resource file to run without it
-            gyro.setI2cAddress(I2cAddr.create7bit(0x10)); //we believe these are 7bit addresses
+            //gyro.setI2cAddress(I2cAddr.create7bit(0x10)); //we believe these are 7bit addresses
             telemetry.log().add("Gyro Calibrating. Do Not Move!");
             gyro.calibrate();
             // Wait until the gyro calibration is complete
@@ -339,9 +349,9 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
         double time = 0; //move timer
 
-        distMap.put(RelicRecoveryVuMark.LEFT,2500);
-        distMap.put(RelicRecoveryVuMark.CENTER,2000);
-        distMap.put(RelicRecoveryVuMark.RIGHT,1500);
+        distMap.put(RelicRecoveryVuMark.LEFT,1250);
+        distMap.put(RelicRecoveryVuMark.CENTER,1000);
+        distMap.put(RelicRecoveryVuMark.RIGHT,750);
 
         state=STATE_START; //in the start state
 
@@ -359,12 +369,15 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
                         telemetry.addData("VuMark", "%s visible", vuMark);
                         state = STATE_MOVE_ARM_DOWN;
+                        holdup(runtime);
                     }
                     break;
 
                 case STATE_MOVE_ARM_DOWN:
                     ballArmServo.setPosition(BALL_ARM_DOWN);
+                    try { Thread.sleep(2000); } catch (InterruptedException e) {};
                     state = STATE_SENSE_BALL_COLOR;
+                    holdup(runtime);
                     //ballArmServo.setPosition(BALL_ARM_DOWN);
                     //need to wait a bit -- use technique we used with move
                     //should move servo arm to down position
@@ -376,12 +389,18 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                         || ballColorSensor.blue()!=0 && ballColorSensor.blue()!=255) {
                         if (ballColorSensor.red()>ballColorSensor.blue()) {
                             ballColor=BALL_RED;
+                            telemetry.addData("Ball Color", "Red");
+                            telemetry.update();
                         } else if (ballColorSensor.blue()>ballColorSensor.red()) {
                             ballColor=BALL_BLUE;
+                            telemetry.addData("Ball Color", "Blue");
+                            telemetry.update();
                         }
                         state=STATE_ROTATE_BALL_OFF;
+                        holdup(runtime);
                     } else {
                         state=STATE_MOVE_ARM_UP;
+                        holdup(runtime);
                     }
                     //blue alliance: (facing toward shelves) if blue then rotate 20, if red then rotate -20
                     //red alliance: (facing away from shelves) if blue then rotate 20, if red then rotate -20
@@ -390,11 +409,12 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
                 case STATE_ROTATE_BALL_OFF:
                     if (ballColor == BALL_BLUE) {
-                        gyroTurn(20, runtime, 2.0);
-                    } else if (ballColor == BALL_RED) {
                         gyroTurn(-20, runtime, 2.0);
+                    } else if (ballColor == BALL_RED) {
+                        gyroTurn(20, runtime, 2.0);
                     }
                     state=STATE_MOVE_ARM_UP;
+                    holdup(runtime);
                     //should rotate bot CW or CCW depending on alliance and color of ball sensed
                     //mecanumMove(0, 0, 0.5); //a minus or plus move and for a time (or use a gyro)
                     break;
@@ -402,6 +422,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                 case STATE_MOVE_ARM_UP:
                     ballArmServo.setPosition(BALL_ARM_UP);
                     state = STATE_ROTATE_BACK;
+                    holdup(runtime);
                     //ballArmServo.setPosition(BALL_ARM_UP);
                     //need to wait a bit -- use technique we used with move
                     //should move servo arm to up position
@@ -410,24 +431,26 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                 case STATE_ROTATE_BACK:
                     //should rotate bot opposite of previous rotate step
                     if (ballColor == BALL_BLUE) {
-                        gyroTurn(-20, runtime, 2.0);
-                    } else if (ballColor == BALL_RED) {
                         gyroTurn(20, runtime, 2.0);
+                    } else if (ballColor == BALL_RED) {
+                        gyroTurn(-20, runtime, 2.0);
                     }
                     state=STATE_MOVING;
+                    holdup(runtime);
                     break;
 
                 case STATE_MOVING:
                     //should move by time, encoders, or inertial
                     if (side == SIDE_LEFT) {
-                        mecanumMove(0, -1, 0);
+                        mecanumMove(0, 0.8, 0);
                     } else {
-                        mecanumMove(0, 1, 0);
+                        mecanumMove(0, -0.8, 0);
                     }
                     time = runtime.milliseconds();
                     telemetry.addData("Moving", "%s units", distMap.get(vuMark));
                     if ((runtime.milliseconds() - time) > distMap.get(vuMark)) {
                         state = STATE_ROTATE_TO_CRYPTOBOX; //after a second were at cryptobox?
+                        holdup(runtime);
                     }
 
                     break;
@@ -435,6 +458,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                 case STATE_ROTATE_TO_CRYPTOBOX:
                     gyroTurn(-90,runtime,2.0);
                     state=PUSH_BLOCK_TO_CRYPTOBOX;
+                    holdup(runtime);
                     //rotate to face cryptobox
                     break;
 
