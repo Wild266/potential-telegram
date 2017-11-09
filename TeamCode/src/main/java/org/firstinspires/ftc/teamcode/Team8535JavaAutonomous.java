@@ -420,9 +420,9 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                 case STATE_MOVING:
                     //should move by time, encoders, or inertial
                     if (side == SIDE_LEFT) {
-                        mecanumMove(0, 1, 0);
-                    } else {
                         mecanumMove(0, -1, 0);
+                    } else {
+                        mecanumMove(0, 1, 0);
                     }
                     time = runtime.milliseconds();
                     telemetry.addData("Moving", "%s units", distMap.get(vuMark));
