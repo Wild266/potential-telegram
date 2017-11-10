@@ -59,7 +59,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     public static final int BALL_BLUE=2;
 
     public static double BALL_ARM_UP=0.8; //fill these in after testing on prod bot
-    public static double BALL_ARM_DOWN=0.2; //fill these in after testing on prod bot
+    public static double BALL_ARM_DOWN=0.4; //fill these in after testing on prod bot
 
     //VuMarks
     VuforiaLocalizer vuforia;
@@ -89,8 +89,8 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     private Servo gripperLeftServo = null;
     private Servo gripperRightServo = null;
 
-    private double gripperLeftPosition = 0.5; //initial position of left gripper (tune this)
-    private double gripperRightPosition = 0.5; //initial position of right gripper (tune this)
+    private double gripperLeftPosition = 0.0; //initial position of left gripper (tune this)
+    private double gripperRightPosition = 1.0; //initial position of right gripper (tune this)
     private double gripperLeftClosingSpeed = 4.0; //range per second
     private double gripperRightClosingSpeed = 4.0; //range per second
     private double gripperLeftOpeningSpeed = 5.0; //range per second
@@ -202,7 +202,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     private void holdup(ElapsedTime time) {
         telemetry.addData("Next State",stateNames[state]); //show the next planned state
         telemetry.update(); //update telemetry before the pause
-        while(!gamepad1.x && (time.time()-lastHold)>0.2) {}; //wait for X to be hit to proceed
+        while(!gamepad1.x && (time.time()-lastHold)>1.0) {}; //wait for X to be hit to proceed
         lastHold=time.time(); //debounce X
     }
 
@@ -244,21 +244,21 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         telemetry.update();
         double startTime=runtime.time();
         if (degrees>0) {
-            mecanumMoveNoScale(0,0,-0.5);
+            mecanumMoveNoScale(0,0,-0.3);
             while(gyro.getHeading()<target) {
                 telemetry.addData("Turning","At %d",gyro.getHeading());
                 telemetry.update();
                 if ((runtime.time()-startTime)>maxTime) break;
             }
         } else {
-            mecanumMoveNoScale(0,0,0.5);
+            mecanumMoveNoScale(0,0,0.3);
             while(gyro.getHeading()>target) {
                 telemetry.addData("Turning","At %d",gyro.getHeading());
                 telemetry.update();
                 if ((runtime.time()-startTime)>maxTime) break;
             }
         }
-        mecanumMove(0,0,0);
+        mecanumMoveNoScale(0,0,0);
     }
 
     @Override
@@ -365,9 +365,9 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
         double time = 0; //move timer
 
-        distMap.put(RelicRecoveryVuMark.LEFT,1250); //in milliseconds of movement
-        distMap.put(RelicRecoveryVuMark.CENTER,1000);
-        distMap.put(RelicRecoveryVuMark.RIGHT,750);
+        distMap.put(RelicRecoveryVuMark.LEFT,1350); //in milliseconds of movement
+        distMap.put(RelicRecoveryVuMark.CENTER,1600);
+        distMap.put(RelicRecoveryVuMark.RIGHT,1850);
 
         state=STATE_START; //in the start state
 
@@ -398,8 +398,9 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     break;
 
                 case STATE_OPENING_GRIPPER:
-                    gripperLeftServo.setPosition(1.0);
-                    gripperRightServo.setPosition(1.0);
+                    try {Thread.sleep(1000);} catch(InterruptedException e) {};
+                    gripperLeftServo.setPosition(0.3);
+                    gripperRightServo.setPosition(0.1);
                     try {Thread.sleep(1000);} catch(InterruptedException e) {};
                     state=STATE_LOWERING_GRIPPER;
                     holdup(runtime);
@@ -417,8 +418,8 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     break;
 
                 case STATE_CLOSING_GRIPPER:
-                    gripperLeftServo.setPosition(0.0);
-                    gripperRightServo.setPosition(0.0);
+                    gripperLeftServo.setPosition(1.0);
+                    gripperRightServo.setPosition(1.0);
                     try {Thread.sleep(1000);} catch(InterruptedException e) {};
                     state=STATE_MOVE_ARM_DOWN;
                     holdup(runtime);
@@ -477,9 +478,9 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
                 case STATE_ROTATE_BALL_OFF:
                     if (ballColor == BALL_BLUE) {
-                        gyroTurn(-20, runtime, 2.0);
+                        gyroTurn(-5, runtime, 1.0);
                     } else if (ballColor == BALL_RED) {
-                        gyroTurn(20, runtime, 2.0);
+                        gyroTurn(5, runtime, 1.0);
                     }
                     state=STATE_MOVE_ARM_UP;
                     holdup(runtime);
@@ -489,6 +490,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
                 case STATE_MOVE_ARM_UP:
                     ballArmServo.setPosition(BALL_ARM_UP);
+                    try {Thread.sleep(1000);} catch(InterruptedException e) {};
                     state = STATE_ROTATE_BACK;
                     holdup(runtime);
                     //ballArmServo.setPosition(BALL_ARM_UP);
@@ -499,13 +501,14 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                 case STATE_ROTATE_BACK:
                     //should rotate bot opposite of previous rotate step
                     if (ballColor == BALL_BLUE) {
-                        gyroTurn(20, runtime, 2.0);
+                        gyroTurn(5, runtime, 1.0);
                     } else if (ballColor == BALL_RED) {
-                        gyroTurn(-20, runtime, 2.0);
+                        gyroTurn(-5, runtime, 1.0);
                     }
-                    time = runtime.milliseconds();
+                    try { Thread.sleep(1000); } catch (InterruptedException e) {};
                     state=STATE_MOVING;
                     holdup(runtime);
+                    time = runtime.milliseconds();
                     break;
 
                 case STATE_MOVING:
@@ -520,6 +523,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                         mecanumMoveNoScale(0.0,0.0,0.0);
                         state = STATE_ROTATE_TO_CRYPTOBOX; //after a second were at cryptobox?
                         holdup(runtime);
+                        try { Thread.sleep(500); } catch (InterruptedException e) {};
                     }
                     break;
 
@@ -528,7 +532,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     state= STATE_PUSH_BLOCK_TO_CRYPTOBOX;
                     holdup(runtime);
                     time = runtime.milliseconds();
-                    mecanumMoveNoScale(0.0,0.5,0.0);
+                    mecanumMoveNoScale(0.0,-0.5,0.0);
                     break;
 
                 case STATE_PUSH_BLOCK_TO_CRYPTOBOX:
@@ -540,13 +544,13 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     break;
 
                 case STATE_RELEASING_BLOCK:
-                    gripperLeftServo.setPosition(1.0);
-                    gripperRightServo.setPosition(1.0);
+                    gripperLeftServo.setPosition(0.0);
+                    gripperRightServo.setPosition(0.0);
                     try {Thread.sleep(500);} catch(InterruptedException e) {};
                     state = STATE_BACKING_UP;
                     holdup(runtime);
                     time=runtime.milliseconds();
-                    mecanumMoveNoScale(0.0,-0.5,0.0);
+                    mecanumMoveNoScale(0.0,0.5,0.0);
                     break;
 
                 case STATE_BACKING_UP:
