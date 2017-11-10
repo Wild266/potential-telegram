@@ -500,6 +500,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                 } else if (vacuumClose) { //step it down
                     vacuumReleasePosition-=vacuumReleaseSpeed*(currentLoopTime-lastLoopTime);
                     if (vacuumReleasePosition<0.0) vacuumReleasePosition=0.0;
+                } else {
+                    //vacuumReleasePosition=0.5; //probably want this for a continuous servo
                 }
                 vacuumReleaseServo.setPosition(vacuumReleasePosition);
                 telemetry.addData("Vacuum Release",vacuumReleasePosition);
@@ -512,6 +514,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                 } else if (lowerBallArm) { //step it down
                     ballArmPosition-=ballArmSpeed*(currentLoopTime-lastLoopTime);
                     if (ballArmPosition<0.0) ballArmPosition=0.0;
+                } else {
+                    //ballArmPosition=0.5; //probably want this for a continuous servo
                 }
                 ballArmServo.setPosition(ballArmPosition);
                 telemetry.addData("Ball Arm",ballArmPosition);
