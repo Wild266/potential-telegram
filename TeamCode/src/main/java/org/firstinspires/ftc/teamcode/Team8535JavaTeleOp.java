@@ -118,6 +118,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private Servo relicLiftServo = null;
     private Servo vacuumReleaseServo = null;
     private double vacuumReleasePosition = 0.5;
+    private double vacuumReleaseSpeed = 1.0;
 
     private double relicLiftPosition = 0.5; //initial position (tune this)
     private double relicLiftSpeed = 0.5;
@@ -127,7 +128,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private Servo ballArmServo2 = null;
     private ColorSensor ballColorSensor = null;
 
-    private double ballArmPosition = 0.8;//initial position of ball arm servo (tune this)
+    private double ballArmPosition = 0.5;//initial position of ball arm servo (tune this)
     private double ballArmPosition2 = 0.2;
     private double ballArmSpeed = 0.5; //range per second
     //Base
@@ -353,6 +354,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             boolean lowerBallArm = (gamepad1.dpad_down);
             boolean raiseBallArm = (gamepad1.dpad_up);
             double vacuumRelease = gamepad1.right_trigger; //couldn't find room on gamepad2
+            boolean vacuumClose = gamepad1.right_bumper;
 
             //gamepad2
             double raiseLowerLift = gamepad2.left_stick_y;
@@ -381,7 +383,9 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             double lsy = forwardBack * speedFactor;
             double lsx = leftRight * speedFactor;
             double rsx = ccwCwRotate;
-
+            if (speedFactor<1.0) {
+                rsx*=0.8;
+            }
             //this takes care of the movement commands by calculating use of the mecanum wheels
             mecanumMove(lsx,lsy,rsx);
 
@@ -441,9 +445,9 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
             if (armExtendMotor!=null) {
                 if (extendRelicArm && !retractRelicArm) {
-                    armExtendMotor.setPower(1.0);
+                    armExtendMotor.setPower(0.8);
                 } else if (retractRelicArm && !extendRelicArm) {
-                    armExtendMotor.setPower(-1.0);
+                    armExtendMotor.setPower(-0.8);
                 } else {
                     armExtendMotor.setPower(0.0);
                 }
@@ -496,7 +500,15 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             }
 
             if (vacuumReleaseServo!=null) {
-                vacuumReleaseServo.setPosition(vacuumRelease); //need more info on position of servo before changing this
+                if (vacuumRelease>0.2) { //step it up
+                    vacuumReleasePosition+=vacuumReleaseSpeed*(currentLoopTime-lastLoopTime);
+                    if (vacuumReleasePosition>1.0) vacuumReleasePosition=1.0;
+                } else if (vacuumClose) { //step it down
+                    vacuumReleasePosition-=vacuumReleaseSpeed*(currentLoopTime-lastLoopTime);
+                    if (vacuumReleasePosition<0.0) vacuumReleasePosition=0.0;
+                }
+                vacuumReleaseServo.setPosition(vacuumReleasePosition);
+                telemetry.addData("Vacuum Release",vacuumReleasePosition);
             }
 
             if (ballArmServo !=null && ballArmServo2 !=null) {

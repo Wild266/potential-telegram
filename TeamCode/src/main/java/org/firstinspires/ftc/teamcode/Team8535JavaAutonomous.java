@@ -395,6 +395,9 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                             ballColor=BALL_BLUE;
                             telemetry.addData("Ball Color", "Blue");
                             telemetry.update();
+                        } else {
+                            telemetry.addData("Ball Color", "Unknown");
+                            telemetry.update();
                         }
                         state=STATE_ROTATE_BALL_OFF;
                         holdup(runtime);
