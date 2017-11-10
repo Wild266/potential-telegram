@@ -125,11 +125,9 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
     //Ball Arm
     private Servo ballArmServo = null;
-    private Servo ballArmServo2 = null;
     private ColorSensor ballColorSensor = null;
 
     private double ballArmPosition = 0.5;//initial position of ball arm servo (tune this)
-    private double ballArmPosition2 = 0.2;
     private double ballArmSpeed = 0.5; //range per second
     //Base
     private ColorSensor bottomColorSensor = null;
@@ -251,8 +249,6 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         if (vacuumReleaseServo!=null) vacuumReleaseServo.setPosition(vacuumReleasePosition);
         ballArmServo = getServo("ball_arm");
         if (ballArmServo !=null) ballArmServo.setPosition(ballArmPosition);
-        ballArmServo2 = getServo("ball_arm2");
-        if (ballArmServo2 !=null) ballArmServo2.setPosition(ballArmPosition2);
         ballColorSensor = getColorSensor("ball_color");
         bottomColorSensor = getColorSensor("bottom_color");
         if (bottomColorSensor!=null) bottomColorSensor.setI2cAddress(I2cAddr.create7bit(0x48)); //we believe these are 7bit addresses
@@ -276,13 +272,11 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         if (gripperRightServo!=null) gripperRightServo.scaleRange(0.0,1.0);
         if (vacuumReleaseServo!=null) vacuumReleaseServo.scaleRange(0.0,1.0);
         if (ballArmServo!=null) ballArmServo.scaleRange(0.0,1.0);
-        if (ballArmServo2!=null) ballArmServo2.scaleRange(0.0,1.0);
 
         if (gripperLeftServo!=null) gripperLeftServo.setDirection(Servo.Direction.REVERSE); //changed to reverse to flip left gripper servo direction
         if (gripperRightServo!=null) gripperRightServo.setDirection(Servo.Direction.FORWARD);
         if (vacuumReleaseServo!=null) vacuumReleaseServo.setDirection(Servo.Direction.FORWARD);
         if (ballArmServo!=null) ballArmServo.setDirection(Servo.Direction.FORWARD);
-        if (ballArmServo2!=null) ballArmServo2.setDirection(Servo.Direction.REVERSE);
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
@@ -511,20 +505,15 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                 telemetry.addData("Vacuum Release",vacuumReleasePosition);
             }
 
-            if (ballArmServo !=null && ballArmServo2 !=null) {
+            if (ballArmServo!=null) {
                 if (raiseBallArm) { //step it up
                     ballArmPosition+=ballArmSpeed*(currentLoopTime-lastLoopTime);
                     if (ballArmPosition>1.0) ballArmPosition=1.0;
-                    ballArmPosition2-=ballArmSpeed*(currentLoopTime-lastLoopTime);
-                    if (ballArmPosition2<0.0) ballArmPosition2=0.0;
                 } else if (lowerBallArm) { //step it down
                     ballArmPosition-=ballArmSpeed*(currentLoopTime-lastLoopTime);
                     if (ballArmPosition<0.0) ballArmPosition=0.0;
-                    ballArmPosition2+=ballArmSpeed*(currentLoopTime-lastLoopTime);
-                    if (ballArmPosition2>1.0) ballArmPosition2=1.0;
                 }
                 ballArmServo.setPosition(ballArmPosition);
-                ballArmServo2.setPosition(ballArmPosition2);
                 telemetry.addData("Ball Arm",ballArmPosition);
             }
 
