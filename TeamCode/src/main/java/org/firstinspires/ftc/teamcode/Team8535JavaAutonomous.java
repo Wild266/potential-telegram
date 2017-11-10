@@ -202,8 +202,8 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     private void holdup(ElapsedTime time) {
         telemetry.addData("Next State",stateNames[state]); //show the next planned state
         telemetry.update(); //update telemetry before the pause
-        while(!gamepad1.x && (time.time()-lastHold)>1.0) {}; //wait for X to be hit to proceed
-        lastHold=time.time(); //debounce X
+        //while(!gamepad1.x && (time.time()-lastHold)>1.0) {}; //wait for X to be hit to proceed
+        //lastHold=time.time(); //debounce X
     }
 
     private void mecanumMove(double lsx,double lsy,double rsx) {
@@ -240,18 +240,18 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     private void gyroTurn(int degrees,ElapsedTime runtime, double maxTime) {
         int current=gyro.getHeading();
         int target=current+degrees;
-        telemetry.addData("Gryo Turn","At %d Target %d",current,target);
+        telemetry.addData("Gyro Turn","At %d Target %d",current,target);
         telemetry.update();
         double startTime=runtime.time();
         if (degrees>0) {
-            mecanumMoveNoScale(0,0,-0.3);
+            mecanumMoveNoScale(0,0,-0.25);
             while(gyro.getHeading()<target) {
                 telemetry.addData("Turning","At %d",gyro.getHeading());
                 telemetry.update();
                 if ((runtime.time()-startTime)>maxTime) break;
             }
         } else {
-            mecanumMoveNoScale(0,0,0.3);
+            mecanumMoveNoScale(0,0,0.25);
             while(gyro.getHeading()>target) {
                 telemetry.addData("Turning","At %d",gyro.getHeading());
                 telemetry.update();
@@ -477,10 +477,19 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     break;
 
                 case STATE_ROTATE_BALL_OFF:
-                    if (ballColor == BALL_BLUE) {
-                        gyroTurn(-5, runtime, 1.0);
-                    } else if (ballColor == BALL_RED) {
-                        gyroTurn(5, runtime, 1.0);
+                    if (alliance==ALLIANCE_RED) {
+                        if (ballColor == BALL_BLUE) {
+                            gyroTurn(-5, runtime, 1.0);
+                        } else if (ballColor == BALL_RED) {
+                            gyroTurn(5, runtime, 1.0);
+                        }
+                    }
+                    if (alliance==ALLIANCE_BLUE) {
+                        if (ballColor == BALL_BLUE) {
+                            gyroTurn(5, runtime, 1.0);
+                        } else if (ballColor == BALL_RED) {
+                            gyroTurn(-5, runtime, 1.0);
+                        }
                     }
                     state=STATE_MOVE_ARM_UP;
                     holdup(runtime);
@@ -528,7 +537,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     break;
 
                 case STATE_ROTATE_TO_CRYPTOBOX:
-                    gyroTurn(-90,runtime,2.0);
+                    gyroTurn(-90,runtime,4.0);
                     state= STATE_PUSH_BLOCK_TO_CRYPTOBOX;
                     holdup(runtime);
                     time = runtime.milliseconds();
