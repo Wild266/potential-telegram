@@ -200,7 +200,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
      * @param time current elapsed time counter
      */
     private void holdup(ElapsedTime time) {
-        telemetry.addData("Next State",stateNames[state]);
+        telemetry.addData("Next State",stateNames[state]); //show the next planned state
         telemetry.update(); //update telemetry before the pause
         while(!gamepad1.x && (time.time()-lastHold)>0.2) {}; //wait for X to be hit to proceed
         lastHold=time.time(); //debounce X
@@ -385,7 +385,6 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     time = runtime.milliseconds();
                     gripperLiftMotor.setPower(-1.0);
                     state=STATE_LIFTING_GRIPPER;
-                    holdup(runtime);
                     break;
 
                 case STATE_LIFTING_GRIPPER:
@@ -400,7 +399,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                 case STATE_OPENING_GRIPPER:
                     gripperLeftServo.setPosition(1.0);
                     gripperRightServo.setPosition(1.0);
-                    try {Thread.sleep(500);} catch(InterruptedException e) {};
+                    try {Thread.sleep(1000);} catch(InterruptedException e) {};
                     state=STATE_LOWERING_GRIPPER;
                     holdup(runtime);
                     time = runtime.milliseconds();
@@ -419,7 +418,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                 case STATE_CLOSING_GRIPPER:
                     gripperLeftServo.setPosition(0.0);
                     gripperRightServo.setPosition(0.0);
-                    try {Thread.sleep(500);} catch(InterruptedException e) {};
+                    try {Thread.sleep(1000);} catch(InterruptedException e) {};
                     state=STATE_MOVE_ARM_DOWN;
                     holdup(runtime);
                     break;
@@ -539,9 +538,9 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     gripperRightServo.setPosition(1.0);
                     try {Thread.sleep(500);} catch(InterruptedException e) {};
                     state = STATE_BACKING_UP;
+                    holdup(runtime);
                     time=runtime.milliseconds();
                     mecanumMoveNoScale(0.0,-0.5,0.0);
-                    holdup(runtime);
                     break;
 
                 case STATE_BACKING_UP:
