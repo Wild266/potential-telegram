@@ -125,14 +125,25 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     private static final int STATE_MOVE_ARM_UP=5; // moving arm up
     private static final int STATE_ROTATE_BACK=6; //rotating the arm back to the way it was
     private static final int STATE_MOVING=7; //moving to cryptobox
-    private static final int STATE_AT_CRYPTOBOX=8; //at cryptobox
     private static final int STATE_ROTATE_TO_CRYPTOBOX=9; //rotate the robot to face the cryptobox
-    private static final int PUSH_BLOCK_TO_CRYPTOBOX=10;
-    private static final int RELEASE_BLOCK=11;
+    private static final int STATE_PUSH_BLOCK_TO_CRYPTOBOX =10;
+    private static final int STATE_RELEASING_BLOCK=11;
+
+    private static final int STATE_LIFTING_GRIPPER=12;
+    private static final int STATE_OPENING_GRIPPER=13;
+    private static final int STATE_LOWERING_GRIPPER=14;
+    private static final int STATE_CLOSING_GRIPPER=15;
+    private static final int STATE_BACKING_UP=16;
+
+    private static final int STATE_START_LIFT=17;
+
+    private static final int STATE_DONE=18;
 
     private static String[] stateNames={"Starting","Looking","Moving Arm Down","Sensing Ball Color",
             "Rotating to Knock Ball Off","Moving Arm Up","Rotating Back","Moving to CryptoBox",
-            "At CryptoBox","Rotating To CryptoBox","Pushing Block To CryptoBox","Releasing Block"}; //state names for telemetry
+            "At CryptoBox","Rotating To CryptoBox","Pushing Block To CryptoBox","Releasing Block",
+            "Lifting Gripper","Opening Gripper","Lowering Gripper","Closing Gripper","Backing Up","Starting Lift","Done"
+    }; //state names for telemetry
 
     private int state; //the current state our robot is in
     RelicRecoveryVuMark vuMark; //currently detect vuMark
@@ -184,24 +195,33 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         }
     }
 
+    /**
+     * For debugging pause the state machine
+     * @param time current elapsed time counter
+     */
     private void holdup(ElapsedTime time) {
-        telemetry.update();
-        while(!gamepad1.x && (time.time()-lastHold)>0.2) {};
-        lastHold=time.time();
+        telemetry.addData("Next State",stateNames[state]);
+        telemetry.update(); //update telemetry before the pause
+        while(!gamepad1.x && (time.time()-lastHold)>0.2) {}; //wait for X to be hit to proceed
+        lastHold=time.time(); //debounce X
     }
+
+    private void mecanumMove(double lsx,double lsy,double rsx) {
+        if (JOYSTICK_SCALING) {
+            lsy=Math.pow(lsy,5.0);
+            lsx=Math.pow(lsx,5.0);
+            rsx=Math.pow(rsx,5.0);
+        }
+        mecanumMoveNoScale(lsx,lsy,rsx);
+    }
+
     /**
      * Set motors for a mecanum move
      * @param lsx left stick x (left/right)
      * @param lsy left stick y (front/back)
      * @param rsx right stick x (rotation)
      */
-    private void mecanumMove(double lsx,double lsy,double rsx) {
-
-        if (JOYSTICK_SCALING) {
-            lsy=Math.pow(lsy,5.0);
-            lsx=Math.pow(lsx,5.0);
-            rsx=Math.pow(rsx,5.0);
-        }
+    private void mecanumMoveNoScale(double lsx,double lsy,double rsx) {
 
         double r = Math.sqrt(lsy*lsy+lsx*lsx);
         double robotAngle = Math.atan2(-1*lsy,lsx) - Math.PI / 4;
@@ -217,21 +237,23 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         rb.setPower(v4);
     }
 
-    private void gyroTurn(int degrees, ElapsedTime runtime, double maxTime) {
+    private void gyroTurn(int degrees,ElapsedTime runtime, double maxTime) {
         int current=gyro.getHeading();
         int target=current+degrees;
+        telemetry.addData("Gryo Turn","At %d Target %d",current,target);
+        telemetry.update();
         double startTime=runtime.time();
         if (degrees>0) {
-            mecanumMove(0,0,-0.4);
+            mecanumMoveNoScale(0,0,-0.5);
             while(gyro.getHeading()<target) {
-                telemetry.addData("Turning",gyro.getHeading());
+                telemetry.addData("Turning","At %d",gyro.getHeading());
                 telemetry.update();
                 if ((runtime.time()-startTime)>maxTime) break;
             }
         } else {
-            mecanumMove(0,0,0.4);
+            mecanumMoveNoScale(0,0,0.5);
             while(gyro.getHeading()>target) {
-                telemetry.addData("Turning",gyro.getHeading());
+                telemetry.addData("Turning","At %d",gyro.getHeading());
                 telemetry.update();
                 if ((runtime.time()-startTime)>maxTime) break;
             }
@@ -343,7 +365,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
         double time = 0; //move timer
 
-        distMap.put(RelicRecoveryVuMark.LEFT,1250);
+        distMap.put(RelicRecoveryVuMark.LEFT,1250); //in milliseconds of movement
         distMap.put(RelicRecoveryVuMark.CENTER,1000);
         distMap.put(RelicRecoveryVuMark.RIGHT,750);
 
@@ -358,11 +380,55 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                 case STATE_START:
                     state = STATE_LOOKING; //start looking for the VuMark
                     break;
+
+                case STATE_START_LIFT:
+                    time = runtime.milliseconds();
+                    gripperLiftMotor.setPower(-1.0);
+                    state=STATE_LIFTING_GRIPPER;
+                    holdup(runtime);
+                    break;
+
+                case STATE_LIFTING_GRIPPER:
+                    telemetry.addData("Lift Gripper", gripperLiftMotor.getCurrentPosition());
+                    if ((runtime.milliseconds() - time) > 500) {
+                        gripperLiftMotor.setPower(0.0);
+                        state = STATE_OPENING_GRIPPER;
+                        holdup(runtime);
+                    }
+                    break;
+
+                case STATE_OPENING_GRIPPER:
+                    gripperLeftServo.setPosition(1.0);
+                    gripperRightServo.setPosition(1.0);
+                    try {Thread.sleep(500);} catch(InterruptedException e) {};
+                    state=STATE_LOWERING_GRIPPER;
+                    holdup(runtime);
+                    time = runtime.milliseconds();
+                    gripperLiftMotor.setPower(1.0);
+                    break;
+
+                case STATE_LOWERING_GRIPPER:
+                    telemetry.addData("Lift Gripper", gripperLiftMotor.getCurrentPosition());
+                    if ((runtime.milliseconds() - time) > 500) {
+                        gripperLiftMotor.setPower(0.0);
+                        state = STATE_CLOSING_GRIPPER;
+                        holdup(runtime);
+                    }
+                    break;
+
+                case STATE_CLOSING_GRIPPER:
+                    gripperLeftServo.setPosition(0.0);
+                    gripperRightServo.setPosition(0.0);
+                    try {Thread.sleep(500);} catch(InterruptedException e) {};
+                    state=STATE_MOVE_ARM_DOWN;
+                    holdup(runtime);
+                    break;
+
                 case STATE_LOOKING:
                     vuMark = RelicRecoveryVuMark.from(relicTemplate);
                     if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
                         telemetry.addData("VuMark", "%s visible", vuMark);
-                        state = STATE_MOVE_ARM_DOWN;
+                        state = STATE_START_LIFT; //STATE_MOVE_ARM_DOWN; //STATE_START_LIFT //if picking up block
                         holdup(runtime);
                     }
                     break;
@@ -432,6 +498,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     } else if (ballColor == BALL_RED) {
                         gyroTurn(-20, runtime, 2.0);
                     }
+                    time = runtime.milliseconds();
                     state=STATE_MOVING;
                     holdup(runtime);
                     break;
@@ -439,30 +506,50 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                 case STATE_MOVING:
                     //should move by time, encoders, or inertial
                     if (side == SIDE_LEFT) {
-                        mecanumMove(0, 0.8, 0);
+                        mecanumMoveNoScale(0, 0.5, 0);
                     } else {
-                        mecanumMove(0, -0.8, 0);
+                        mecanumMoveNoScale(0, -0.5, 0);
                     }
-                    time = runtime.milliseconds();
                     telemetry.addData("Moving", "%s units", distMap.get(vuMark));
                     if ((runtime.milliseconds() - time) > distMap.get(vuMark)) {
+                        mecanumMoveNoScale(0.0,0.0,0.0);
                         state = STATE_ROTATE_TO_CRYPTOBOX; //after a second were at cryptobox?
                         holdup(runtime);
                     }
-
                     break;
 
                 case STATE_ROTATE_TO_CRYPTOBOX:
                     gyroTurn(-90,runtime,2.0);
-                    state=PUSH_BLOCK_TO_CRYPTOBOX;
+                    state= STATE_PUSH_BLOCK_TO_CRYPTOBOX;
                     holdup(runtime);
-                    //rotate to face cryptobox
+                    time = runtime.milliseconds();
+                    mecanumMoveNoScale(0.0,0.5,0.0);
                     break;
 
-                case PUSH_BLOCK_TO_CRYPTOBOX:
+                case STATE_PUSH_BLOCK_TO_CRYPTOBOX:
+                    if ((runtime.milliseconds() - time) > 750) {
+                        mecanumMoveNoScale(0.0,0.0,0.0);
+                        state = STATE_RELEASING_BLOCK; //after a second were at cryptobox?
+                        holdup(runtime);
+                    }
                     break;
 
-                case RELEASE_BLOCK:
+                case STATE_RELEASING_BLOCK:
+                    gripperLeftServo.setPosition(1.0);
+                    gripperRightServo.setPosition(1.0);
+                    try {Thread.sleep(500);} catch(InterruptedException e) {};
+                    state = STATE_BACKING_UP;
+                    time=runtime.milliseconds();
+                    mecanumMoveNoScale(0.0,-0.5,0.0);
+                    holdup(runtime);
+                    break;
+
+                case STATE_BACKING_UP:
+                    if ((runtime.milliseconds() - time) > 750) {
+                        mecanumMoveNoScale(0.0,0.0,0.0);
+                        state = STATE_DONE;
+                        requestOpModeStop();
+                    }
                     break;
             }
 
