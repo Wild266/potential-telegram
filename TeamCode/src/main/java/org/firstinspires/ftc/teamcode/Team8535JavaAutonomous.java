@@ -378,6 +378,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
             //use a switch statement to take action based on the state we're in
             switch(state) {
                 case STATE_START:
+                    time = runtime.milliseconds();
                     state = STATE_LOOKING; //start looking for the VuMark
                     break;
 
@@ -428,6 +429,11 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
                         telemetry.addData("VuMark", "%s visible", vuMark);
                         state = STATE_START_LIFT; //STATE_MOVE_ARM_DOWN; //STATE_START_LIFT //if picking up block
+                        holdup(runtime);
+                    } else if ((runtime.milliseconds()-time)>5000) {
+                        telemetry.addData("VuMark", "Assuming Center");
+                        vuMark=RelicRecoveryVuMark.CENTER; //assume center after 5 seconds
+                        state = STATE_START_LIFT;
                         holdup(runtime);
                     }
                     break;
