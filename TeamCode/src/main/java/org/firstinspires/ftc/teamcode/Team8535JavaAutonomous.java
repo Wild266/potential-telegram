@@ -97,10 +97,8 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     private double gripperRightOpeningSpeed = 5.0; //range per second
 
     //Ball Arm
-    private Servo ballArmServo2 = null;
-
+    private Servo ballArmServo; //we'll need a servo to raise/lower the ball arm
     private double ballArmPosition = 0.8;//initial position of ball arm servo (tune this)
-    private double ballArmPosition2 = 0.2;
     private double ballArmSpeed = 0.5; //range per second
 
     //Base
@@ -108,7 +106,6 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
     //Ball Color Sensor
     ColorSensor ballColorSensor; //we'll need a color sensor to detect ball color
-    Servo ballArmServo; //we'll need a servo to raise/lower the ball arm
     private int ballColor=0;
 
     //Gyro Sensor
@@ -290,8 +287,6 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         //Ball Arm
         ballArmServo = getServo("ball_arm");
         if (ballArmServo !=null) ballArmServo.setPosition(ballArmPosition);
-        ballArmServo2 = getServo("ball_arm2");
-        if (ballArmServo2 !=null) ballArmServo2.setPosition(ballArmPosition2);
         ballColorSensor = getColorSensor("ball_color");
         bottomColorSensor = getColorSensor("bottom_color");
         if (bottomColorSensor!=null) bottomColorSensor.setI2cAddress(I2cAddr.create8bit(0x48)); //we believe these are 7bit addresses
@@ -322,7 +317,6 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         if (gripperLeftServo!=null) gripperLeftServo.setDirection(Servo.Direction.REVERSE); //changed to reverse to flip left gripper servo direction
         if (gripperRightServo!=null) gripperRightServo.setDirection(Servo.Direction.FORWARD);
         if (ballArmServo!=null) ballArmServo.setDirection(Servo.Direction.FORWARD);
-        if (ballArmServo2!=null) ballArmServo2.setDirection(Servo.Direction.REVERSE);
 
         if (prodbot) {
             lf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
