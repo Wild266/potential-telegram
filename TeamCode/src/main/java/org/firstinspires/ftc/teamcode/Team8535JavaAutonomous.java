@@ -240,19 +240,23 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     private void gyroTurn(int degrees,ElapsedTime runtime, double maxTime) {
         int current=gyro.getHeading();
         int target=current+degrees;
-        telemetry.addData("Gyro Turn","At %d Target %d",current,target);
+        int normTarget=target;
+        if (normTarget>180) {
+            normTarget-=360; //keep in -180,180 range
+        }
+        telemetry.addData("Gyro Turn","At %d Target %d",current,normTarget);
         telemetry.update();
         double startTime=runtime.time();
-        if (degrees>0) {
+        if (normTarget>0) {
             mecanumMoveNoScale(0,0,-0.25);
-            while(gyro.getHeading()<target) {
+            while(gyro.getHeading()<normTarget) {
                 telemetry.addData("Turning","At %d",gyro.getHeading());
                 telemetry.update();
                 if ((runtime.time()-startTime)>maxTime) break;
             }
         } else {
             mecanumMoveNoScale(0,0,0.25);
-            while(gyro.getHeading()>target) {
+            while(gyro.getHeading()>normTarget) {
                 telemetry.addData("Turning","At %d",gyro.getHeading());
                 telemetry.update();
                 if ((runtime.time()-startTime)>maxTime) break;
