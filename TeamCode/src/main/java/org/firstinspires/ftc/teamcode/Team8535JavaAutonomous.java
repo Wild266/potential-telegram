@@ -237,26 +237,31 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         rb.setPower(v4);
     }
 
+    private int normalizeHeading(int heading) {
+        if (heading>180) {
+            return(heading-360);
+        } else {
+            return(heading);
+        }
+    }
+
     private void gyroTurn(int degrees,ElapsedTime runtime, double maxTime) {
         int current=gyro.getHeading();
         int target=current+degrees;
-        int normTarget=target;
-        if (normTarget>180) {
-            normTarget-=360; //keep in -180,180 range
-        }
+        int normTarget=normalizeHeading(target);
         telemetry.addData("Gyro Turn","At %d Target %d",current,normTarget);
         telemetry.update();
         double startTime=runtime.time();
         if (normTarget>0) {
             mecanumMoveNoScale(0,0,-0.25);
-            while(gyro.getHeading()<normTarget) {
+            while(normalizeHeading(gyro.getHeading())<normTarget) {
                 telemetry.addData("Turning","At %d",gyro.getHeading());
                 telemetry.update();
                 if ((runtime.time()-startTime)>maxTime) break;
             }
         } else {
             mecanumMoveNoScale(0,0,0.25);
-            while(gyro.getHeading()>normTarget) {
+            while(normalizeHeading(gyro.getHeading())>normTarget) {
                 telemetry.addData("Turning","At %d",gyro.getHeading());
                 telemetry.update();
                 if ((runtime.time()-startTime)>maxTime) break;
