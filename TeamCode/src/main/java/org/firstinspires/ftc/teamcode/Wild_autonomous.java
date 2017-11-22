@@ -75,6 +75,15 @@ public class Wild_autonomous extends LinearOpMode {
     //private DcMotor vacuum=null;
     //private DcMotor vacuumRelease=null; //this will be eliminated or change to standard servo
 
+
+
+    private double lastLoopTime=0.0;
+    private double currentLoopTime=0.0;
+    private double lastHold=0.0;
+
+
+
+
     private static boolean SHOW_CAMERA=true; //whether to show the camera on the phone screen
     private static boolean JOYSTICK_SCALING=true; //whether to scale joystick values by cubing value (more precision for small movements)
 

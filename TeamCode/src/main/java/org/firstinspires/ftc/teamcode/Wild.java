@@ -26,101 +26,292 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.firstinspires.ftc.teamcode;
 
-import android.graphics.Color;
-
+import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.NormalizedColorSensor;
-import com.qualcomm.robotcore.hardware.NormalizedRGBA;
-import com.qualcomm.robotcore.hardware.SwitchableLight;
+import com.qualcomm.robotcore.hardware.I2cAddr;
+import com.qualcomm.robotcore.hardware.I2cDevice;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.navigation.RelicRecoveryVuMark;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
-import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
-
-
 /**
- * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
- * the autonomous or the teleop period of an FTC match. The names of OpModes appear on the menu
- * of the FTC Driver Station. When an selection is made from the menu, the corresponding OpMode
- * class is instantiated on the Robot Controller and executed.
- *
- * This particular OpMode just executes a basic Tank Drive Teleop for a two wheeled robot
- * It includes all the skeletal structure that all linear OpModes contain.
- *
- * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
- * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
- *///<-------- Initialization/telemetry comments
+ * Team8235 TeleOp OpMode
+ */
 
-@TeleOp(name="Wild", group="Linear Opmode")
+//SENSORS
+// gyro is at 20
+// color sensor at 48
+// color sensor 3C default address for one on the arm
+
+//SERVOS
+// channel 5 left gripper   0=in 220=out
+// channel 4 right gripper  0=out 220=in
+// channel 1 relic arm      0=out 220=in
+// channel 6 ball arm       0=down 150=up
+
+//MOTORS
+// controller OPQ5 motor1(lf) positive=forward
+// controller OPQ5 motor2(rf) postiive=forward
+
+// controller QHLS motor1(lb) positive=forward
+// controller QHLS motor2(rb??)  DOES NOTHING/SOMETHING WRONG?
+
+// controller VKGI motor1(vacuum pump)
+// controller VKGI motor2(relic arm up) positive=up negative=down
+
+// controller VUZO motor1(linear slide up) positive=in negative=out
+// controller VUZO motor2(gripper lift) positive=down negative=up -- gravity wins
+
+//PROBLEMS
+// rf running backwards (we reversed initial position here)
+// rb doesn't move (IS REVERSED) (fixed through reversing with other motor on controller)
+// jewel arm (up and down) doesn't work
+// opposite on left trigger
+// top hat up and down ???
+
+
+
+@TeleOp(name = "Wild", group = "Linear Opmode")
 public class Wild extends LinearOpMode {
 
-    //VuMarks
-    VuforiaLocalizer vuforia;
+    private boolean prodbot = false;
 
-    // Declare OpMode members.
-    NormalizedColorSensor colorSensor;
-    float[] hsvValues = new float[3];
-    final float values[] = hsvValues;
+    //Speed Factor for Fast/Slow Mode
+    private double speedFactor = 1.0; //default full speed
+
     private ElapsedTime runtime = new ElapsedTime();
-    private DcMotor lf=null;
-    private DcMotor rf=null;
-    private DcMotor lb=null;
-    private DcMotor rb=null;
+    private double vacuumTime=0.0;
+    private double lastLoopTime=0.0;
+    private double currentLoopTime=0.0;
 
-    //private DcMotor vacuum=null;
-    //private DcMotor vacuumRelease=null; //this will be eliminated or change to standard servo
+    //Drive Motors
+    private DcMotor lf = null;
+    private DcMotor rf = null;
+    private DcMotor lb = null;
+    private DcMotor rb = null;
 
-    private static boolean SHOW_CAMERA=true; //whether to show the camera on the phone screen
-    private static boolean JOYSTICK_SCALING=true; //whether to scale joystick values by cubing value (more precision for small movements)
+    //Front Gripper
+    private DcMotor gripperLiftMotor = null;
+    private Servo gripperLeftServo = null;
+    private Servo gripperRightServo = null;
+
+    private double gripperLeftPosition = 0.5; //initial position of left gripper (tune this)
+    private double gripperRightPosition = 0.5; //initial position of right gripper (tune this)
+    private double gripperLeftClosingSpeed = 4.0; //range per second
+    private double gripperRightClosingSpeed = 4.0; //range per second
+    private double gripperLeftOpeningSpeed = 5.0; //range per second
+    private double gripperRightOpeningSpeed = 5.0; //range per second
+
+    private int heightPosition1 = 0; //probably too low but need calibration
+    private int heightPosition2 = 100;
+    private int heightPosition3 = 200;
+    private int heightPosition4 = 300;
+
+    //Relic Arm
+    private DcMotor vacuumMotor = null;
+    private DcMotor armExtendMotor = null;
+    private DcMotor armLiftMotor = null;
+    private Servo relicLiftServo = null;
+    private Servo vacuumReleaseServo = null;
+    private double vacuumReleasePosition = 0.5;
+    private double vacuumReleaseSpeed = 1.0;
+
+    private double relicLiftPosition = 0.5; //initial position (tune this)
+    private double relicLiftSpeed = 0.5;
+
+    //Ball Arm
+    private Servo ballArmServo = null;
+    private ColorSensor ballColorSensor = null;
+    //battery
+    private VoltageSensor batterySensor = null;
+
+    private double ballArmPosition = 0.5;//initial position of ball arm servo (tune this)
+    private double ballArmSpeed = 0.5; //range per second
+    //Base
+    private ColorSensor bottomColorSensor = null;
+
+    private ModernRoboticsI2cGyro gyro = null;
+
+    //State Variables
+    private boolean vacuumRunning=false;
+
+    private static boolean JOYSTICK_SCALING = true; //whether to scale joystick values by cubing value (more precision for small movements)
+
+    //introduce methods which allow us to continue even when particular devices aren't found (by just not utilizing those devices)
+
+    private DcMotor getMotor(String motorName) { //these could be made generic using type notation
+        try {
+            return (hardwareMap.get(DcMotor.class, motorName));
+        } catch (Exception e) {
+            return (null);
+        }
+    }
+
+    private I2cDevice getDevice(String deviceName) { //these could be made generic using type notation
+        try {
+            return (hardwareMap.get(I2cDevice.class, deviceName));
+        } catch (Exception e) {
+            return (null);
+        }
+    }
+
+    private Servo getServo(String servoName) { //these could be made generic using type notation
+        try {
+            return (hardwareMap.get(Servo.class, servoName));
+        } catch (Exception e) {
+            return (null);
+        }
+    }
+
+    private ColorSensor getColorSensor(String sensorName) { //these could be made generic using type notation
+        try {
+            return (hardwareMap.get(ColorSensor.class, sensorName));
+        } catch (Exception e) {
+            return (null);
+        }
+    }
+    private VoltageSensor getVoltageSensor(String sensorName) { //Battery sensor
+        try {
+            return (hardwareMap.get(VoltageSensor.class, sensorName));
+        } catch (Exception e) {
+            return (null);
+        }
+    }
+    private ModernRoboticsI2cGyro getGyro(String gyroName) { //these could be made generic using type notation
+        try {
+            return(hardwareMap.get(ModernRoboticsI2cGyro.class,gyroName));
+        } catch (Exception e) {
+            return(null);
+        }
+    }
+
+    /**
+     * Set motors for a mecanum move
+     * @param lsx left stick x (left/right)
+     * @param lsy left stick y (front/back)
+     * @param rsx right stick x (rotation)
+     */
+    private void mecanumMove(double lsx,double lsy,double rsx) {
+
+        if (JOYSTICK_SCALING) {
+            lsy=Math.pow(lsy,5.0);
+            lsx=Math.pow(lsx,5.0);
+            rsx=Math.pow(rsx,5.0);
+        }
+
+        double r = Math.sqrt(lsy*lsy+lsx*lsx);
+        double robotAngle = Math.atan2(-1*lsy,lsx) - Math.PI / 4;
+        double rightX = rsx;
+        final double v1 = r * Math.cos(robotAngle) + rightX;
+        final double v2 = r * Math.sin(robotAngle) - rightX;
+        final double v3 = r * Math.sin(robotAngle) + rightX;
+        final double v4 = r * Math.cos(robotAngle) - rightX;
+
+        lf.setPower(v1);
+        rf.setPower(v2);
+        lb.setPower(v3);
+        rb.setPower(v4);
+    }
 
     @Override
     public void runOpMode() {
 
-        VuforiaLocalizer.Parameters parameters=null;
-        if (SHOW_CAMERA) {
-            int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-            parameters = new VuforiaLocalizer.Parameters(cameraMonitorViewId);
-        } else {
-            parameters = new VuforiaLocalizer.Parameters();
-        }
-
-        parameters.vuforiaLicenseKey = "Ab01nl7/////AAAAGeQnfaGoXUZ+i+4cRvO5jFNG9p0WO71bT/iVJiyCR32g6mazT1g6HiB2OmYcVTUVAWWGDIMKhNlGGjHAS/MCdmgK9VR4jbeUxBD0HT1xXebg7sD5+o2+4HSKheLgOnGdjVMwuUZK/3pnthEADVlvUZsDtrIxxYKBQEQSTf3uWP6vYFTax3kjPSIczUrmjUh6HhIhEm8NcrP4FgE/IjOr4xABtOU8QK4pdMDSxI5UatrszXVfs5jeUJ1gsciJBhwb95YN3e5Eqp/Mhr0K4iqdfGlPZLSYsm2757vfocnlHXaCM1jaU6jM42f8PR0/FLqZX9nIDSbtj+LAo9ufa6qi5/gnW3Ps3Vm1xpiGr7Tp10WN";
-        parameters.cameraDirection = VuforiaLocalizer.CameraDirection.BACK; //use the back camera for VuForia
-        vuforia = ClassFactory.createVuforiaLocalizer(parameters);
-
-        VuforiaTrackables relicTrackables = this.vuforia.loadTrackablesFromAsset("RelicVuMark");
-        VuforiaTrackable relicTemplate = relicTrackables.get(0);
-        relicTemplate.setName("relicVuMarkTemplate");
-
         telemetry.addData("Status", "Initialized");
+        if (getDevice("drivebot") != null) {
+            prodbot = false;
+            telemetry.addData("Bot", "DriveBot");
+        } else {
+            prodbot = true;
+            telemetry.addData("Bot", "ProdBot");
+        }
         telemetry.update();
 
-        // Initialize the hardware variables. Note that the strings used here as parameters
-        // to 'get' must correspond to the names assigned during the robot configuration
-        // step (using the FTC Robot Controller app on the phone).
-        colorSensor = hardwareMap.get(NormalizedColorSensor.class, "sensor_color");
-        lf  = hardwareMap.get(DcMotor.class, "lf");
-        rf  = hardwareMap.get(DcMotor.class, "rf");
-        lb  = hardwareMap.get(DcMotor.class, "lb");
-        rb  = hardwareMap.get(DcMotor.class, "rb");
+        //initialize required motors
 
-        //vacuum = hardwareMap.get(DcMotor.class, "vacuum");
-        //vacuumRelease  = hardwareMap.get(DcMotor.class, "release");
+        lf = hardwareMap.get(DcMotor.class, "lf");
+        rf = hardwareMap.get(DcMotor.class, "rf");
+        lb = hardwareMap.get(DcMotor.class, "lb");
+        rb = hardwareMap.get(DcMotor.class, "rb");
+
+        //initialize motors/servos/sensors that may vary between bot versions
+
+        gripperLiftMotor = getMotor("gripper_lift");
+        if (gripperLiftMotor!=null) gripperLiftMotor.setPower(0.0);
+        gripperLeftServo = getServo("gripper_left");
+        if (gripperLeftServo != null) gripperLeftServo.setPosition(gripperLeftPosition);
+        gripperRightServo = getServo("gripper_right");
+        if (gripperRightServo != null) gripperRightServo.setPosition(gripperRightPosition);
+        vacuumMotor = getMotor("vacuum");
+        if (vacuumMotor!=null) vacuumMotor.setPower(0.0);
+        armExtendMotor = getMotor("arm_extend");
+        if (armExtendMotor!=null) armExtendMotor.setPower(0.0);
+        armLiftMotor = getMotor("arm_lift");
+        if (armLiftMotor!=null) armLiftMotor.setPower(0.0);
+        relicLiftServo = getServo("relic_lift");
+        if (relicLiftServo != null) relicLiftServo.setPosition(relicLiftPosition);
+        vacuumReleaseServo = getServo("vacuum_release");
+        if (vacuumReleaseServo!=null) vacuumReleaseServo.setPosition(vacuumReleasePosition);
+        ballArmServo = getServo("ball_arm");
+        if (ballArmServo !=null) ballArmServo.setPosition(ballArmPosition);
+        ballColorSensor = getColorSensor("ball_color");
+        batterySensor = getVoltageSensor("voltage_number");
+        bottomColorSensor = getColorSensor("bottom_color");
+        if (bottomColorSensor!=null) bottomColorSensor.setI2cAddress(I2cAddr.create7bit(0x48)); //we believe these are 7bit addresses
+        gyro = getGyro("gyro");
+        if (gyro!=null) { //just rename the gyro in the resource file to run without it
+            gyro.setI2cAddress(I2cAddr.create7bit(0x10)); //we believe these are 7bit addresses
+            telemetry.log().add("Gyro Calibrating. Do Not Move!");
+            gyro.calibrate();
+            // Wait until the gyro calibration is complete
+            runtime.reset();
+            while (!isStopRequested() && gyro.isCalibrating())  {
+                telemetry.addData("Calibrating", "%s", Math.round(runtime.seconds())%2==0 ? "|.." : "..|");
+                telemetry.update();
+                sleep(50);
+            }
+            telemetry.log().clear(); telemetry.log().add("Gyro Calibrated. Press Start.");
+            telemetry.clear(); telemetry.update();
+            gyro.resetZAxisIntegrator();
+        }
+        if (gripperLeftServo!=null) gripperLeftServo.scaleRange(0.0,1.0); //tune these later to desired range
+        if (gripperRightServo!=null) gripperRightServo.scaleRange(0.0,1.0);
+        if (vacuumReleaseServo!=null) vacuumReleaseServo.scaleRange(0.0,1.0);
+        if (ballArmServo!=null) ballArmServo.scaleRange(0.0,1.0);
+
+        if (gripperLeftServo!=null) gripperLeftServo.setDirection(Servo.Direction.REVERSE); //changed to reverse to flip left gripper servo direction
+        if (gripperRightServo!=null) gripperRightServo.setDirection(Servo.Direction.FORWARD);
+        if (vacuumReleaseServo!=null) vacuumReleaseServo.setDirection(Servo.Direction.FORWARD);
+        if (ballArmServo!=null) ballArmServo.setDirection(Servo.Direction.FORWARD);
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
-        lf.setDirection(DcMotor.Direction.REVERSE);
-        rf.setDirection(DcMotor.Direction.FORWARD);
-        lb.setDirection(DcMotor.Direction.REVERSE);
-        rb.setDirection(DcMotor.Direction.FORWARD);
+        if (prodbot) {
+            lf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
+            rf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
+            lb.setDirection(DcMotor.Direction.REVERSE); //was FORWARD
+            rb.setDirection(DcMotor.Direction.FORWARD); //was FORWARD
+
+            if (gripperLiftMotor!=null) gripperLiftMotor.setDirection(DcMotor.Direction.FORWARD);
+            if (vacuumMotor!=null) vacuumMotor.setDirection(DcMotor.Direction.FORWARD);
+            if (armExtendMotor!=null) armExtendMotor.setDirection(DcMotor.Direction.FORWARD);
+            if (armLiftMotor!=null) armLiftMotor.setDirection(DcMotor.Direction.FORWARD);
+
+        } else {
+            lf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
+            rf.setDirection(DcMotor.Direction.FORWARD); //was REVERSE
+            lb.setDirection(DcMotor.Direction.REVERSE); //was FORWARD
+            rb.setDirection(DcMotor.Direction.FORWARD); //was FORWARD
+
+            if (gripperLiftMotor!=null) gripperLiftMotor.setDirection(DcMotor.Direction.FORWARD);
+            if (vacuumMotor!=null) vacuumMotor.setDirection(DcMotor.Direction.FORWARD);
+            if (armExtendMotor!=null) armExtendMotor.setDirection(DcMotor.Direction.FORWARD);
+            if (armLiftMotor!=null) armLiftMotor.setDirection(DcMotor.Direction.FORWARD);
+        }
 
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
@@ -131,142 +322,238 @@ public class Wild extends LinearOpMode {
         lb.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rb.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
+        if (gripperLiftMotor!=null) {
+            gripperLiftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            gripperLiftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); //we will probably switch modes for this motor for presets
+        }
+
         lf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); //runs again
         rf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         lb.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rb.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        relicTrackables.activate();
+        if (ballColorSensor!=null) {
+            ballColorSensor.enableLed(true);
+        }
+        if (batterySensor != null) {
+            // VERY IMPORTANT look at this
+        }
+        if (bottomColorSensor!=null) {
+            bottomColorSensor.enableLed(true);
+        }
+
+        currentLoopTime=runtime.time();
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-            if (gamepad1.x) {
-                if (colorSensor instanceof SwitchableLight) {
-                    ((SwitchableLight) colorSensor).enableLight(true);
-                }
-                NormalizedRGBA colors = colorSensor.getNormalizedColors();
-                Color.colorToHSV(colors.toColor(), hsvValues);
-                telemetry.addLine()
-                        .addData("H", "%.3f", hsvValues[0])
-                        .addData("S", "%.3f", hsvValues[1])
-                        .addData("V", "%.3f", hsvValues[2]);
-                telemetry.addLine()
-                        .addData("a", "%.3f", colors.alpha)
-                        .addData("r", "%.3f", colors.red)
-                        .addData("g", "%.3f", colors.green)
-                        .addData("b", "%.3f", colors.blue);
+            lastLoopTime=currentLoopTime; //the loop timing difference gives our actively stepping servos the time to use with their speed multipliers
+            currentLoopTime=runtime.time();
+            telemetry.addData("Loop Time",(currentLoopTime-lastLoopTime)); //hopefully reasonable speed for movement determinations
 
-                int color = colors.toColor();
-                telemetry.addLine("raw Android color: ")
-                        .addData("a", "%02x", Color.alpha(color))
-                        .addData("r", "%02x", Color.red(color))
-                        .addData("g", "%02x", Color.green(color))
-                        .addData("b", "%02x", Color.blue(color));
+            //translate some gamepad controls to variables
 
-                float max = Math.max(Math.max(Math.max(colors.red, colors.green), colors.blue), colors.alpha);
-                colors.red /= max;
-                colors.green /= max;
-                colors.blue /= max;
-                color = colors.toColor();
+            //gamepad1
+            double forwardBack = gamepad1.left_stick_y;
+            double leftRight = gamepad1.left_stick_x;
+            double ccwCwRotate = gamepad1.right_stick_x;
+            boolean slowMode = (gamepad1.left_trigger > 0.2);
+            boolean lowerBallArm = (gamepad1.dpad_down);
+            boolean raiseBallArm = (gamepad1.dpad_up);
+            double vacuumRelease = gamepad1.right_trigger; //couldn't find room on gamepad2
+            boolean vacuumClose = gamepad1.right_bumper;
 
-                telemetry.addLine("normalized color:  ")
-                        .addData("a", "%02x", Color.alpha(color))
-                        .addData("r", "%02x", Color.red(color))
-                        .addData("g", "%02x", Color.green(color))
-                        .addData("b", "%02x", Color.blue(color));
-                //telemetry.update();
+            //gamepad2
+            double raiseLowerLift = gamepad2.left_stick_y;
+            double leftClamp = gamepad2.left_trigger;
+            double rightClamp = gamepad2.right_trigger;
+            boolean leftRelease = gamepad2.left_bumper;
+            boolean rightRelease = gamepad2.right_bumper;
+            boolean height1 = gamepad2.x; //lowest preset gripper height
+            boolean height2 = gamepad2.a;
+            boolean height3 = gamepad2.b;
+            boolean height4 = gamepad2.y; //highest preset gripper height
+            boolean extendRelicArm = gamepad2.dpad_right;
+            boolean retractRelicArm = gamepad2.dpad_left;
+            boolean raiseRelic = gamepad2.dpad_up;
+            boolean lowerRelic = gamepad2.dpad_down;
+            double lowerRaiseArm = gamepad2.right_stick_y;
+            boolean startVacuum = gamepad2.start;
+            boolean stopVacuum = gamepad2.back;
 
-                Color.RGBToHSV(Color.red(color), Color.green(color), Color.blue(color), hsvValues);
-                }
-
-            if (gamepad1.y) { //stop and look for vumarks if Y key is down
-
-                RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
-                if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
-                    telemetry.addData("VuMark", "%s visible", vuMark);
-                }
-
+            if (slowMode) {
+                speedFactor = 0.75;
             } else {
-                if (gamepad1.a) { //attempt to switch lefty and righty controls
-                    double lsy=gamepad1.left_stick_y;
-                    double lsx=gamepad1.left_stick_x;//right stick drive, left stick rotation
-                    double rsx=gamepad1.right_stick_x;//@above ideal for righties
-
-                    if (JOYSTICK_SCALING) {
-                        lsy=Math.pow(lsy,5.0);
-                        lsx=Math.pow(lsx,5.0);
-                        rsx=Math.pow(rsx,5.0);
-                    }
-
-                    double r = Math.sqrt(lsy*lsy+lsx*lsx);
-                    double robotAngle = Math.atan2(-1*lsx,lsy) - Math.PI / 4;
-                    double rightX = -1 * rsx;
-                    final double v1 = r * Math.cos(robotAngle) + rightX;
-                    final double v2 = r * Math.sin(robotAngle) - rightX;
-                    final double v3 = r * Math.sin(robotAngle) + rightX;
-                    final double v4 = r * Math.cos(robotAngle) - rightX;
-
-                    double comp1=r*Math.cos(robotAngle); //look at hypothesis that turn component overwhelms vector component
-                    double comp2=rightX;
-
-                    telemetry.addData("Speed/Angle","Speed=%.2f Angle=%.2f",r,robotAngle);
-                    telemetry.addData("Comp1/Comp2","Comp1=%.2f Comp2=%.2f",comp1,comp2);
-
-                    lf.setPower(v1);
-                    rf.setPower(v2);
-                    lb.setPower(v3);
-                    rb.setPower(v4);
-
-                    double vpower = gamepad2.right_stick_y;
-                    double rpower = gamepad2.right_stick_x;
-
-                }  //the above is optionally executed if the button is pressed but so is the regular control below -- perhaps you meant the below to be an "else" block???
-                double lsy=gamepad1.right_stick_y;
-                double lsx=gamepad1.right_stick_x;//right stick drive, left stick rotation
-                double rsx=gamepad1.left_stick_x;//@above ideal for righties
-
-                if (JOYSTICK_SCALING) {
-                    lsy=Math.pow(lsy,5.0);
-                    lsx=Math.pow(lsx,5.0);
-                    rsx=Math.pow(rsx,5.0);
-                }
-
-                double r = Math.sqrt(lsy*lsy+lsx*lsx);
-                double robotAngle = Math.atan2(-1*lsx,lsy) - Math.PI / 4;
-                double rightX = -1 * rsx;
-                final double v1 = r * Math.cos(robotAngle) + rightX;
-                final double v2 = r * Math.sin(robotAngle) - rightX;
-                final double v3 = r * Math.sin(robotAngle) + rightX;
-                final double v4 = r * Math.cos(robotAngle) - rightX;
-
-                double comp1=r*Math.cos(robotAngle); //look at hypothesis that turn component overwhelms vector component
-                double comp2=rightX;
-
-                telemetry.addData("Speed/Angle","Speed=%.2f Angle=%.2f",r,robotAngle);
-                telemetry.addData("Comp1/Comp2","Comp1=%.2f Comp2=%.2f",comp1,comp2);
-
-                lf.setPower(v1);
-                rf.setPower(v2);
-                lb.setPower(v3);
-                rb.setPower(v4);
-
-                double vpower = gamepad2.right_stick_y;
-                double rpower = gamepad2.right_stick_x;
-
-                //vacuum.setPower(vpower);
-                //vacuumRelease.setPower(rpower);
+                speedFactor = 1.0;
             }
 
-            int lfpos=lf.getCurrentPosition(); //show positions to help with auto mode
-            int rfpos=rf.getCurrentPosition();
-            int lbpos=lb.getCurrentPosition();
-            int rbpos=rb.getCurrentPosition();
+            double lsy = forwardBack * speedFactor;
+            double lsx = leftRight * speedFactor;
+            double rsx = ccwCwRotate;
+            if (speedFactor<1.0) {
+                rsx*=0.8;
+            }
+            //this takes care of the movement commands by calculating use of the mecanum wheels
+            mecanumMove(lsx,lsy,rsx);
 
-            telemetry.addData("Positions","lf=%d rf=%d lb=%d rb=%d",lfpos,rfpos,lbpos,rbpos);
+            if (gripperLiftMotor!=null) {
+                if (raiseLowerLift > 0.2) {
+                    gripperLiftMotor.setPower(-1.0); //if trigger is positive, raise lift
+                    telemetry.addData("Gripper Lift","Raising");
+                } else if (raiseLowerLift < -0.2) {
+                    gripperLiftMotor.setPower(1.0); //if trigger is negative, lower lift
+                    telemetry.addData("Gripper Lift", "Lowering");
+                } else {
+                    gripperLiftMotor.setPower(0.0); //this should do motor braking
+                    telemetry.addData("Gripper Lift", "Stopped");
+                }
+                /* commenting this out until at least the above manual movement works
+                if (height1 || height2 || height3 || height4) {
+                    //we're assuming the encoder was zeroed at the bottom before the op mode started (and has tracked changes)
+                    if (gripperLiftMotor.getMode() != DcMotor.RunMode.RUN_TO_POSITION) {
+                        gripperLiftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    }
+                    if (height1) gripperLiftMotor.setTargetPosition(heightPosition1);
+                    if (height2) gripperLiftMotor.setTargetPosition(heightPosition2);
+                    if (height3) gripperLiftMotor.setTargetPosition(heightPosition3);
+                    if (height4) gripperLiftMotor.setTargetPosition(heightPosition4);
+                    gripperLiftMotor.setPower(1.0);
 
+                    while (opModeIsActive() && gripperLiftMotor.isBusy()) { //this freezes until it's in position -- might want to do this during other things
+                        telemetry.addData("LiftPosition", "Running To %7d At %7d", gripperLiftMotor.getTargetPosition(), gripperLiftMotor.getCurrentPosition());
+                        telemetry.update();
+                    }
+
+                    gripperLiftMotor.setPower(0);
+                    gripperLiftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                }
+                */
+            }
+
+            if (vacuumMotor!=null) {
+                if (startVacuum && !vacuumRunning && ((runtime.time()-vacuumTime)>0.2)) {
+                    vacuumRunning=true;
+                    vacuumTime=runtime.time();
+                } else if (startVacuum && vacuumRunning && ((runtime.time()-vacuumTime)>0.2)) {
+                    vacuumRunning=false;
+                    vacuumTime=runtime.time();
+                } else if (startVacuum) {
+                    vacuumTime=runtime.time(); //to avoid self-toggle
+                }
+                if (stopVacuum) vacuumRunning=false; //can't get back button to work
+                if (vacuumRunning) {
+                    telemetry.addData("Vacuum","On");
+                    vacuumMotor.setPower(1.0);
+                } else {
+                    telemetry.addData("Vacuum","Off");
+                    vacuumMotor.setPower(0.0);
+                }
+            }
+
+            if (armExtendMotor!=null) {
+                if (extendRelicArm && !retractRelicArm) {
+                    armExtendMotor.setPower(0.8);
+                } else if (retractRelicArm && !extendRelicArm) {
+                    armExtendMotor.setPower(-0.8);
+                } else {
+                    armExtendMotor.setPower(0.0);
+                }
+            }
+
+            if (relicLiftServo!=null) {
+                if (raiseRelic) { //step it up
+                    relicLiftPosition+=relicLiftSpeed*(currentLoopTime-lastLoopTime);
+                    if (relicLiftPosition>1.0) relicLiftPosition=1.0;
+                } else if (lowerRelic) { //step it down
+                    relicLiftPosition-=relicLiftSpeed*(currentLoopTime-lastLoopTime);
+                    if (relicLiftPosition<0.0) relicLiftPosition=0.0;
+                }
+                relicLiftServo.setPosition(relicLiftPosition);
+                telemetry.addData("Relic Lift",relicLiftPosition);
+            }
+
+            if (armLiftMotor!=null) {
+                if (lowerRaiseArm > 0.2) {
+                    armLiftMotor.setPower(1.0); //if trigger is positive, raise arm
+                } else if (lowerRaiseArm < -0.2) {
+                    armLiftMotor.setPower(-1.0); //if trigger is negative, lower rm
+                } else {
+                    armLiftMotor.setPower(0.0); //this should do motor braking
+                }
+            }
+
+            if (gripperLeftServo!=null) {
+                if (leftClamp>0.2) { //step it up
+                    gripperLeftPosition+=gripperLeftClosingSpeed*(currentLoopTime-lastLoopTime);
+                    if (gripperLeftPosition>1.0) gripperLeftPosition=1.0;
+                } else if (leftRelease) { //step it down
+                    gripperLeftPosition-=gripperLeftOpeningSpeed*(currentLoopTime-lastLoopTime);
+                    if (gripperLeftPosition<0.0) gripperLeftPosition=0.0;
+                }
+                gripperLeftServo.setPosition(gripperLeftPosition);
+                telemetry.addData("Left Gripper",gripperLeftPosition);
+            }
+
+            if (gripperRightServo!=null) {
+                if (rightClamp>0.2) { //step it up
+                    gripperRightPosition+=gripperRightClosingSpeed*(currentLoopTime-lastLoopTime);
+                    if (gripperRightPosition>1.0) gripperRightPosition=1.0;
+                } else if (rightRelease) { //step it down
+                    gripperRightPosition-=gripperRightOpeningSpeed*(currentLoopTime-lastLoopTime);
+                    if (gripperRightPosition<0.0) gripperRightPosition=0.0;
+                }
+                gripperRightServo.setPosition(gripperRightPosition);
+                telemetry.addData("Right Gripper",gripperRightPosition);
+            }
+
+            if (vacuumReleaseServo!=null) {
+                if (vacuumRelease>0.2) { //step it up
+                    vacuumReleasePosition-=vacuumReleaseSpeed*(currentLoopTime-lastLoopTime);
+                    if (vacuumReleasePosition<0.0) vacuumReleasePosition=0.0;
+                } else if (vacuumClose) { //step it down
+                    vacuumReleasePosition+=vacuumReleaseSpeed*(currentLoopTime-lastLoopTime);
+                    if (vacuumReleasePosition>1.0) vacuumReleasePosition=1.0;
+                } else {
+                    vacuumReleasePosition=1.0; //probably want this for a continuous servo
+                }
+                vacuumReleaseServo.setPosition(vacuumReleasePosition);
+                telemetry.addData("Vacuum Release",vacuumReleasePosition);
+            }
+
+            if (ballArmServo!=null) {
+                if (raiseBallArm) { //step it up
+                    ballArmPosition+=ballArmSpeed*(currentLoopTime-lastLoopTime);
+                    if (ballArmPosition>1.0) ballArmPosition=1.0;
+                } else if (lowerBallArm) { //step it down
+                    ballArmPosition-=ballArmSpeed*(currentLoopTime-lastLoopTime);
+                    if (ballArmPosition<0.0) ballArmPosition=0.0;
+                } else {
+                    ballArmPosition=0.5; //probably want this for a continuous servo
+                }
+                ballArmServo.setPosition(ballArmPosition);
+                telemetry.addData("Ball Arm",ballArmPosition);
+            }
+
+            if (ballColorSensor!=null)
+                telemetry.addData("BallColor","R=%d G=%d B=%d A=%d", ballColorSensor.red(), ballColorSensor.green(), ballColorSensor.blue(), ballColorSensor.alpha());
+            if (batterySensor != null)
+                //int VoltageSensor = getVoltageSensor(int).getVoltage();
+                telemetry.addData("Batterysensor","%d",batterySensor);
+            if (bottomColorSensor!=null)
+                telemetry.addData("BottomColor","R=%d G=%d B=%d A=%d", bottomColorSensor.red(), bottomColorSensor.green(), bottomColorSensor.blue(), bottomColorSensor.alpha());
+
+            int lfpos = lf.getCurrentPosition(); //show positions to help with auto mode
+            int rfpos = rf.getCurrentPosition();
+            int lbpos = lb.getCurrentPosition();
+            int rbpos = rb.getCurrentPosition();
+
+            telemetry.addData("Positions", "lf=%d rf=%d lb=%d rb=%d", lfpos, rfpos, lbpos, rbpos);
+            if (gyro!=null) {
+                int heading = gyro.getHeading();
+                telemetry.addData("Heading","%3d degrees",heading);
+            }
             // Show the elapsed game time
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.update();
         }
-    } //<---- program
-}//<----- Ending/Closing bracket Yee!!!!!!!!!!!!!!!1
+    }
+}
