@@ -5,7 +5,8 @@
  * the following conditions are met:
  *
  * Redistributions of source code must retain the above copyright notice, this list
- *
+ * of conditions and the following disclaimer.
+ *
  * Redistributions in binary form must reproduce the above copyright notice, this
  * list of conditions and the following disclaimer in the documentation and/or
  * other materials provided with the distribution.
@@ -81,6 +82,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
     //Speed Factor for Fast/Slow Mode
     private double speedFactor = 1.0; //default full speed
+
     private ElapsedTime runtime = new ElapsedTime();
     private double vacuumTime=0.0;
     private double lastLoopTime=0.0;
@@ -116,8 +118,6 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private Servo relicLiftServo = null;
     private Servo vacuumReleaseServo = null;
     private double vacuumReleasePosition = 0.5;
-    private double vacuumReleasePosition2 = 0.7;     //As: for the new vacuums
-    private double vacuumReleasePosition3 = 0.3;    //As: for the new vacuums
     private double vacuumReleaseSpeed = 1.0;
 
     private double relicLiftPosition = 0.5; //initial position (tune this)
@@ -348,8 +348,6 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             boolean lowerBallArm = (gamepad1.dpad_down);
             boolean raiseBallArm = (gamepad1.dpad_up);
             double vacuumRelease = gamepad1.right_trigger; //couldn't find room on gamepad2
-            boolean vacuumRelease2 = gamepad1.a;            //As: will modify while testing
-            boolean vacuumRelease3 = gamepad1.b;            //As: will modify while testing
             boolean vacuumClose = gamepad1.right_bumper;
 
             //gamepad2
@@ -407,12 +405,10 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                     if (height3) gripperLiftMotor.setTargetPosition(heightPosition3);
                     if (height4) gripperLiftMotor.setTargetPosition(heightPosition4);
                     gripperLiftMotor.setPower(1.0);
-
                     while (opModeIsActive() && gripperLiftMotor.isBusy()) { //this freezes until it's in position -- might want to do this during other things
                         telemetry.addData("LiftPosition", "Running To %7d At %7d", gripperLiftMotor.getTargetPosition(), gripperLiftMotor.getCurrentPosition());
                         telemetry.update();
                     }
-
                     gripperLiftMotor.setPower(0);
                     gripperLiftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                 }
@@ -508,32 +504,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                 vacuumReleaseServo.setPosition(vacuumReleasePosition);
                 telemetry.addData("Vacuum Release",vacuumReleasePosition);
             }
-            if (vacuumReleaseServo!=null) {
-                if (vacuumRelease>0.2) { //step it up
-                    vacuumReleasePosition2-=vacuumReleaseSpeed*(currentLoopTime-lastLoopTime);
-                    if (vacuumReleasePosition2<0.0) vacuumReleasePosition2=0.0;
-                } else if (vacuumClose) { //step it down
-                    vacuumReleasePosition2+=vacuumReleaseSpeed*(currentLoopTime-lastLoopTime);
-                    if (vacuumReleasePosition2>1.0) vacuumReleasePosition2=1.0;
-                } else {
-                    vacuumReleasePosition2=1.0; //probably want this for a continuous servo
-                }
-                vacuumReleaseServo.setPosition(vacuumReleasePosition2);
-                telemetry.addData("Vacuum Release",vacuumReleasePosition2);
-            }
-            if (vacuumReleaseServo!=null) {
-                if (vacuumRelease>0.2) { //step it up
-                    vacuumReleasePosition3-=vacuumReleaseSpeed*(currentLoopTime-lastLoopTime);
-                    if (vacuumReleasePosition3<0.0) vacuumReleasePosition3=0.0;
-                } else if (vacuumClose) { //step it down
-                    vacuumReleasePosition3+=vacuumReleaseSpeed*(currentLoopTime-lastLoopTime);
-                    if (vacuumReleasePosition3>1.0) vacuumReleasePosition3=1.0;
-                } else {
-                    vacuumReleasePosition3=1.0; //probably want this for a continuous servo
-                }
-                vacuumReleaseServo.setPosition(vacuumReleasePosition3);
-                telemetry.addData("Vacuum Release",vacuumReleasePosition3);
-            }
+
             if (ballArmServo!=null) {
                 if (raiseBallArm) { //step it up
                     ballArmPosition+=ballArmSpeed*(currentLoopTime-lastLoopTime);
