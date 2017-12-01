@@ -31,8 +31,10 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.I2cDevice;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -98,6 +100,9 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private DcMotor gripperLiftMotor = null;
     private Servo gripperLeftServo = null;
     private Servo gripperRightServo = null;
+    private CRServo relicClampServo = null;
+
+    private Servo glyphDropServo = null;
 
     private double gripperLeftPosition = 0.5; //initial position of left gripper (tune this)
     private double gripperRightPosition = 0.5; //initial position of right gripper (tune this)
@@ -120,14 +125,18 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private double vacuumReleasePosition = 0.5;
     private double vacuumReleaseSpeed = 1.0;
 
-    private double relicLiftPosition = 0.5; //initial position (tune this)
+    private double relicLiftPosition = 0.0; //initial position (tune this)
     private double relicLiftSpeed = 0.5;
+    private double relicClampPosition = 0.5;
+
+    // Glyph Drop carriage
+    private double glyphDropPosition = 0.0;
 
     //Ball Arm
     private Servo ballArmServo = null;
     private ColorSensor ballColorSensor = null;
 
-    private double ballArmPosition = 0.5;//initial position of ball arm servo (tune this)
+    private double ballArmPosition = 1.0;//initial position of ball arm servo (tune this)
     private double ballArmSpeed = 0.5; //range per second
     //Base
     private ColorSensor bottomColorSensor = null;
@@ -160,6 +169,14 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private Servo getServo(String servoName) { //these could be made generic using type notation
         try {
             return (hardwareMap.get(Servo.class, servoName));
+        } catch (Exception e) {
+            return (null);
+        }
+    }
+
+    private CRServo getCRServo(String crServoName) { //these could be made generic using type notation
+        try {
+            return (hardwareMap.get(CRServo.class, crServoName));
         } catch (Exception e) {
             return (null);
         }
@@ -233,19 +250,32 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
         gripperLiftMotor = getMotor("gripper_lift");
         if (gripperLiftMotor!=null) gripperLiftMotor.setPower(0.0);
-        gripperLeftServo = getServo("gripper_left");
+        /*gripperLeftServo = getServo("gripper_left");
         if (gripperLeftServo != null) gripperLeftServo.setPosition(gripperLeftPosition);
         gripperRightServo = getServo("gripper_right");
         if (gripperRightServo != null) gripperRightServo.setPosition(gripperRightPosition);
+        */
         vacuumMotor = getMotor("vacuum");
         if (vacuumMotor!=null) vacuumMotor.setPower(0.0);
         armExtendMotor = getMotor("arm_extend");
         if (armExtendMotor!=null) armExtendMotor.setPower(0.0);
         armLiftMotor = getMotor("arm_lift");
         if (armLiftMotor!=null) armLiftMotor.setPower(0.0);
-        relicLiftServo = getServo("relic_lift");
+
+
+        relicLiftServo = getServo("drop_relic_clamp");
+        //if (relicLiftServo != null) relicLiftServo.setPower(0.0);
         if (relicLiftServo != null) relicLiftServo.setPosition(relicLiftPosition);
-        vacuumReleaseServo = getServo("vacuum_release");
+
+
+        relicClampServo = getCRServo("relic_clamp");
+        if (relicClampServo != null) relicClampServo.setPower(0.0);
+
+        glyphDropServo = getServo("drop_glyph");
+        if (glyphDropServo !=null) glyphDropServo.setPosition(glyphDropPosition);
+
+
+        vacuumReleaseServo = getServo("vacuum_release_bottom");
         if (vacuumReleaseServo!=null) vacuumReleaseServo.setPosition(vacuumReleasePosition);
         ballArmServo = getServo("ball_arm");
         if (ballArmServo !=null) ballArmServo.setPosition(ballArmPosition);
@@ -272,11 +302,16 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         if (gripperRightServo!=null) gripperRightServo.scaleRange(0.0,1.0);
         if (vacuumReleaseServo!=null) vacuumReleaseServo.scaleRange(0.0,1.0);
         if (ballArmServo!=null) ballArmServo.scaleRange(0.0,1.0);
+        //if (relicLiftServo!=null) relicLiftServo.scaleRange(0.0,1.0);
+        //if (relicClampServo!=null) relicClampServo.scaleRange(0.0,1.0);
 
         if (gripperLeftServo!=null) gripperLeftServo.setDirection(Servo.Direction.REVERSE); //changed to reverse to flip left gripper servo direction
         if (gripperRightServo!=null) gripperRightServo.setDirection(Servo.Direction.FORWARD);
         if (vacuumReleaseServo!=null) vacuumReleaseServo.setDirection(Servo.Direction.FORWARD);
         if (ballArmServo!=null) ballArmServo.setDirection(Servo.Direction.FORWARD);
+        if (relicLiftServo!=null) relicLiftServo.setDirection(Servo.Direction.REVERSE);
+        if (relicClampServo!=null) relicClampServo.setDirection(DcMotorSimple.Direction.FORWARD);
+        if (glyphDropServo != null) glyphDropServo.setDirection(Servo.Direction.FORWARD);
 
         // Most robots need the motor on one side to be reversed to drive forward
         // Reverse the motor that runs backwards when connected directly to the battery
@@ -284,7 +319,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             lf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
             rf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
             lb.setDirection(DcMotor.Direction.REVERSE); //was FORWARD
-            rb.setDirection(DcMotor.Direction.FORWARD); //was FORWARD
+            rb.setDirection(DcMotor.Direction.REVERSE); //was FORWARD
 
             if (gripperLiftMotor!=null) gripperLiftMotor.setDirection(DcMotor.Direction.FORWARD);
             if (vacuumMotor!=null) vacuumMotor.setDirection(DcMotor.Direction.FORWARD);
@@ -347,23 +382,36 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             boolean slowMode = (gamepad1.left_trigger > 0.2);
             boolean lowerBallArm = (gamepad1.dpad_down);
             boolean raiseBallArm = (gamepad1.dpad_up);
-            double vacuumRelease = gamepad1.right_trigger; //couldn't find room on gamepad2
-            boolean vacuumClose = gamepad1.right_bumper;
+            boolean dropGlyphCarriage = (gamepad1.dpad_right);
+            boolean raiseGlyphCarriage = (gamepad1.dpad_left);
+            //double vacuumRelease = gamepad1.right_trigger; //couldn't find room on gamepad2
+            //boolean vacuumClose = gamepad1.right_bumper;
 
             //gamepad2
+            double vacuumRelease = gamepad2.right_trigger; //couldn't find room on gamepad2
+            boolean vacuumClose = gamepad2.right_bumper;
+
             double raiseLowerLift = gamepad2.left_stick_y;
-            double leftClamp = gamepad2.left_trigger;
-            double rightClamp = gamepad2.right_trigger;
-            boolean leftRelease = gamepad2.left_bumper;
-            boolean rightRelease = gamepad2.right_bumper;
+            //double leftClamp = gamepad2.left_trigger;
+            //double rightClamp = gamepad2.right_trigger; //MS commented
+            //boolean leftRelease = gamepad2.left_bumper; //MS commented
+            //boolean rightRelease = gamepad2.right_bumper;
+            double leftClamp = 0.0;
+            double rightClamp = 0.0;
+            boolean leftRelease = false;
+            boolean rightRelease = false;
             boolean height1 = gamepad2.x; //lowest preset gripper height
             boolean height2 = gamepad2.a;
             boolean height3 = gamepad2.b;
             boolean height4 = gamepad2.y; //highest preset gripper height
             boolean extendRelicArm = gamepad2.dpad_right;
             boolean retractRelicArm = gamepad2.dpad_left;
-            boolean raiseRelic = gamepad2.dpad_up;
-            boolean lowerRelic = gamepad2.dpad_down;
+
+            double lowerRelic = gamepad2.left_trigger;
+            boolean raiseRelic = gamepad2.left_bumper;
+
+            boolean holdClamp = gamepad2.dpad_up;
+            boolean releaseClamp = gamepad2.dpad_down;
             double lowerRaiseArm = gamepad2.right_stick_y;
             boolean startVacuum = gamepad2.start;
             boolean stopVacuum = gamepad2.back;
@@ -447,14 +495,69 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
             if (relicLiftServo!=null) {
                 if (raiseRelic) { //step it up
-                    relicLiftPosition+=relicLiftSpeed*(currentLoopTime-lastLoopTime);
-                    if (relicLiftPosition>1.0) relicLiftPosition=1.0;
-                } else if (lowerRelic) { //step it down
-                    relicLiftPosition-=relicLiftSpeed*(currentLoopTime-lastLoopTime);
+                    relicLiftPosition+=0.005;
+                    relicLiftServo.setPosition(relicLiftPosition);
+                    //relicLiftPosition+=relicLiftSpeed*(currentLoopTime-lastLoopTime);
+                    if (relicLiftPosition>0.5) relicLiftPosition=0.5;
+                } else if (lowerRelic>0.2) { //step it down
+                    relicLiftPosition-=0.005;
+                    relicLiftServo.setPosition(relicLiftPosition);
+                    //relicLiftPosition-=relicLiftSpeed*(currentLoopTime-lastLoopTime);
                     if (relicLiftPosition<0.0) relicLiftPosition=0.0;
                 }
-                relicLiftServo.setPosition(relicLiftPosition);
+                //relicLiftServo.setPosition(relicLiftPosition);
+                //relicLiftPosition= relicLiftServo.getPosition();
                 telemetry.addData("Relic Lift",relicLiftPosition);
+            }
+            else {
+                telemetry.addData("Relic Lift is NULL",relicLiftPosition);
+            }
+
+
+ /*           if (relicLiftServo!=null) {
+                Boolean ClampUp = Boolean.TRUE;
+                if(raiseRelic) {
+                    relicLiftServo.setDirection(DcMotorSimple.Direction.REVERSE);
+                    relicLiftServo.setPower(0.5);
+                    sleep(1000);
+                    telemetry.addData("Relic Clamp", "Released");
+                    ClampUp = Boolean.TRUE;
+                }
+                else if (lowerRelic >0.2)
+                {
+                    relicLiftServo.setDirection(DcMotorSimple.Direction.FORWARD);
+                    relicLiftServo.setPower(0.7);
+                    sleep(2000);
+                    relicLiftServo.setPower(0.0);
+                    ClampUp = Boolean.FALSE;
+
+                }
+                telemetry.addData("Relic Clamp UP", ClampUp.toString());}
+            else {
+                telemetry.addData("Relic Lift is NULL",relicLiftPosition);
+            }
+*/
+
+            if (relicClampServo!=null) {
+                Boolean ClampHolding = Boolean.FALSE;
+                if(holdClamp) {
+                    relicClampServo.setDirection(DcMotorSimple.Direction.REVERSE);
+                    relicClampServo.setPower(0.5);
+                    ClampHolding = Boolean.TRUE;
+                }
+                else if (releaseClamp)
+                {
+                    relicClampServo.setDirection(DcMotorSimple.Direction.FORWARD);
+                    relicClampServo.setPower(0.7);
+                    sleep(1500);
+                    relicClampServo.setPower(0.0);
+                    ClampHolding = Boolean.FALSE;
+
+                }
+                telemetry.addData("Relic Clamp", ClampHolding.toString());
+               }
+            else {
+                telemetry.addData("Relic Clamp is NULL",relicClampPosition);
             }
 
             if (armLiftMotor!=null) {
@@ -507,17 +610,37 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
             if (ballArmServo!=null) {
                 if (raiseBallArm) { //step it up
-                    ballArmPosition+=ballArmSpeed*(currentLoopTime-lastLoopTime);
-                    if (ballArmPosition>1.0) ballArmPosition=1.0;
+                    //ballArmPosition+=ballArmSpeed*(currentLoopTime-lastLoopTime);
+                    //if (ballArmPosition>1.0) ballArmPosition=1.0;
+                    ballArmPosition=1.0;
                 } else if (lowerBallArm) { //step it down
-                    ballArmPosition-=ballArmSpeed*(currentLoopTime-lastLoopTime);
-                    if (ballArmPosition<0.0) ballArmPosition=0.0;
+                    //ballArmPosition-=ballArmSpeed*(currentLoopTime-lastLoopTime);
+                    //if (ballArmPosition<0.6) ballArmPosition=0.0;
+                    ballArmPosition=0.4;
                 } else {
-                    ballArmPosition=0.5; //probably want this for a continuous servo
+                    //ballArmPosition=1.0; //probably want this for a continuous servo
                 }
                 ballArmServo.setPosition(ballArmPosition);
                 telemetry.addData("Ball Arm",ballArmPosition);
             }
+
+
+            if (glyphDropServo!=null) {
+                if (dropGlyphCarriage) { //step it up
+                    //glyphDropPosition+=ballArmSpeed*(currentLoopTime-lastLoopTime);
+                    //if (ballArmPosition>1.0) ballArmPosition=1.0;
+                    glyphDropPosition=0.4;
+                } else if (raiseGlyphCarriage) { //step it down
+                    //glyphDropPosition-=ballArmSpeed*(currentLoopTime-lastLoopTime);
+                    //if (ballArmPosition<0.6) ballArmPosition=0.0;
+                    glyphDropPosition=0.0;
+                } else {
+                    //ballArmPosition=1.0; //probably want this for a continuous servo
+                }
+                glyphDropServo.setPosition(glyphDropPosition);
+                telemetry.addData("Glyph Carriage",glyphDropPosition);
+            }
+
 
             if (ballColorSensor!=null)
                 telemetry.addData("BallColor","R=%d G=%d B=%d A=%d", ballColorSensor.red(), ballColorSensor.green(), ballColorSensor.blue(), ballColorSensor.alpha());
