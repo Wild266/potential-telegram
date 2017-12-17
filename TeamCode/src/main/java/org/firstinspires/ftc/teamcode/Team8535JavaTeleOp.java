@@ -83,6 +83,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private double speedFactor = 1.0; //default full speed
     private ElapsedTime runtime = new ElapsedTime();
     private double vacuumTime=0.0;
+    private double vacuumTime2=0.0;
     private double lastLoopTime=0.0;
     private double currentLoopTime=0.0;
 
@@ -93,9 +94,9 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private DcMotor rb = null;
 
     //Front Gripper
-    private DcMotor gripperLiftMotor = null;
-    private Servo gripperLeftServo = null;
-    private Servo gripperRightServo = null;
+    //private DcMotor gripperLiftMotor = null;
+    //private Servo gripperLeftServo = null;
+    /*private Servo gripperRightServo = null;
 
     private double gripperLeftPosition = 0.5; //initial position of left gripper (tune this)
     private double gripperRightPosition = 0.5; //initial position of right gripper (tune this)
@@ -103,7 +104,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private double gripperRightClosingSpeed = 4.0; //range per second
     private double gripperLeftOpeningSpeed = 5.0; //range per second
     private double gripperRightOpeningSpeed = 5.0; //range per second
-
+*/
     private int heightPosition1 = 0; //probably too low but need calibration
     private int heightPosition2 = 100;
     private int heightPosition3 = 200;
@@ -111,17 +112,22 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
     //Relic Arm
     private DcMotor vacuumMotor = null;
+    private DcMotor vacuumMotor2 = null;
     private DcMotor armExtendMotor = null;
-    private DcMotor armLiftMotor = null;
+    private Servo armLiftServo = null;
+    private double armLiftPosition = 0.5;
     private Servo relicLiftServo = null;
     private Servo vacuumReleaseServo = null;
+    private Servo vacuumReleaseServo2 = null;
     private double vacuumReleasePosition = 0.5;
     private double vacuumReleasePosition2 = 0.7;     //As: for the new vacuums
+
     private double vacuumReleasePosition3 = 0.3;    //As: for the new vacuums
     private double vacuumReleaseSpeed = 1.0;
 
     private double relicLiftPosition = 0.5; //initial position (tune this)
     private double relicLiftSpeed = 0.5;
+    private double armLiftSpeed = 0.5;
 
     //Ball Arm
     private Servo ballArmServo = null;
@@ -136,6 +142,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
     //State Variables
     private boolean vacuumRunning=false;
+    private boolean vacuumRunning2=false;
 
     private static boolean JOYSTICK_SCALING = true; //whether to scale joystick values by cubing value (more precision for small movements)
 
@@ -231,22 +238,26 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
         //initialize motors/servos/sensors that may vary between bot versions
 
-        gripperLiftMotor = getMotor("gripper_lift");
-        if (gripperLiftMotor!=null) gripperLiftMotor.setPower(0.0);
-        gripperLeftServo = getServo("gripper_left");
-        if (gripperLeftServo != null) gripperLeftServo.setPosition(gripperLeftPosition);
-        gripperRightServo = getServo("gripper_right");
-        if (gripperRightServo != null) gripperRightServo.setPosition(gripperRightPosition);
+        //gripperLiftMotor = getMotor("gripper_lift");
+        //if (gripperLiftMotor!=null) gripperLiftMotor.setPower(0.0);
+        //gripperLeftServo = getServo("gripper_left");
+        //if (gripperLeftServo != null) gripperLeftServo.setPosition(gripperLeftPosition);
+        //gripperRightServo = getServo("gripper_right");
+        //if (gripperRightServo != null) gripperRightServo.setPosition(gripperRightPosition);
         vacuumMotor = getMotor("vacuum");
         if (vacuumMotor!=null) vacuumMotor.setPower(0.0);
+        vacuumMotor2 = getMotor ("vacuum2");
+        if (vacuumMotor2!=null) vacuumMotor2.setPower(0.0);
         armExtendMotor = getMotor("arm_extend");
         if (armExtendMotor!=null) armExtendMotor.setPower(0.0);
-        armLiftMotor = getMotor("arm_lift");
-        if (armLiftMotor!=null) armLiftMotor.setPower(0.0);
+        armLiftServo = getServo("arm_lift");
+        if (armLiftServo!=null) armLiftServo.setPosition(armLiftPosition);
         relicLiftServo = getServo("relic_lift");
         if (relicLiftServo != null) relicLiftServo.setPosition(relicLiftPosition);
         vacuumReleaseServo = getServo("vacuum_release");
         if (vacuumReleaseServo!=null) vacuumReleaseServo.setPosition(vacuumReleasePosition);
+        vacuumReleaseServo2 = getServo("vacuum-release2");
+        if (vacuumReleaseServo2!=null) vacuumReleaseServo2.setPosition(vacuumReleasePosition2);
         ballArmServo = getServo("ball_arm");
         if (ballArmServo !=null) ballArmServo.setPosition(ballArmPosition);
         ballColorSensor = getColorSensor("ball_color");
@@ -268,14 +279,16 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             telemetry.clear(); telemetry.update();
             gyro.resetZAxisIntegrator();
         }
-        if (gripperLeftServo!=null) gripperLeftServo.scaleRange(0.0,1.0); //tune these later to desired range
-        if (gripperRightServo!=null) gripperRightServo.scaleRange(0.0,1.0);
+        //if (gripperLeftServo!=null) gripperLeftServo.scaleRange(0.0,1.0); //tune these later to desired range
+        //if (gripperRightServo!=null) gripperRightServo.scaleRange(0.0,1.0);
         if (vacuumReleaseServo!=null) vacuumReleaseServo.scaleRange(0.0,1.0);
+        if (vacuumReleaseServo2!=null) vacuumReleaseServo2.scaleRange(0.0,1.0);
         if (ballArmServo!=null) ballArmServo.scaleRange(0.0,1.0);
 
-        if (gripperLeftServo!=null) gripperLeftServo.setDirection(Servo.Direction.REVERSE); //changed to reverse to flip left gripper servo direction
-        if (gripperRightServo!=null) gripperRightServo.setDirection(Servo.Direction.FORWARD);
+        //if (gripperLeftServo!=null) gripperLeftServo.setDirection(Servo.Direction.REVERSE); //changed to reverse to flip left gripper servo direction
+        //if (gripperRightServo!=null) gripperRightServo.setDirection(Servo.Direction.FORWARD);
         if (vacuumReleaseServo!=null) vacuumReleaseServo.setDirection(Servo.Direction.FORWARD);
+        if (vacuumReleaseServo2!=null) vacuumReleaseServo2.setDirection(Servo.Direction.FORWARD);
         if (ballArmServo!=null) ballArmServo.setDirection(Servo.Direction.FORWARD);
 
         // Most robots need the motor on one side to be reversed to drive forward
@@ -286,10 +299,11 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             lb.setDirection(DcMotor.Direction.REVERSE); //was FORWARD
             rb.setDirection(DcMotor.Direction.FORWARD); //was FORWARD
 
-            if (gripperLiftMotor!=null) gripperLiftMotor.setDirection(DcMotor.Direction.FORWARD);
+            //if (gripperLiftMotor!=null) gripperLiftMotor.setDirection(DcMotor.Direction.FORWARD);
             if (vacuumMotor!=null) vacuumMotor.setDirection(DcMotor.Direction.FORWARD);
+            if (vacuumMotor2!=null) vacuumMotor2.setDirection(DcMotor.Direction.FORWARD);
             if (armExtendMotor!=null) armExtendMotor.setDirection(DcMotor.Direction.FORWARD);
-            if (armLiftMotor!=null) armLiftMotor.setDirection(DcMotor.Direction.FORWARD);
+            if (armLiftServo!=null) armLiftServo.setDirection(Servo.Direction.FORWARD);
 
         } else {
             lf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
@@ -297,10 +311,11 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             lb.setDirection(DcMotor.Direction.REVERSE); //was FORWARD
             rb.setDirection(DcMotor.Direction.FORWARD); //was FORWARD
 
-            if (gripperLiftMotor!=null) gripperLiftMotor.setDirection(DcMotor.Direction.FORWARD);
+            //if (gripperLiftMotor!=null) gripperLiftMotor.setDirection(DcMotor.Direction.FORWARD);
             if (vacuumMotor!=null) vacuumMotor.setDirection(DcMotor.Direction.FORWARD);
+            if (vacuumMotor2!=null) vacuumMotor2.setDirection(DcMotor.Direction.FORWARD);
             if (armExtendMotor!=null) armExtendMotor.setDirection(DcMotor.Direction.FORWARD);
-            if (armLiftMotor!=null) armLiftMotor.setDirection(DcMotor.Direction.FORWARD);
+            if (armLiftServo!=null) armLiftServo.setDirection(Servo.Direction.FORWARD);
         }
 
         // Wait for the game to start (driver presses PLAY)
@@ -312,10 +327,10 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         lb.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rb.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        if (gripperLiftMotor!=null) {
-            gripperLiftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-            gripperLiftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); //we will probably switch modes for this motor for presets
-        }
+        //if (gripperLiftMotor!=null) {
+            //gripperLiftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            //gripperLiftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); //we will probably switch modes for this motor for presets
+        //}
 
         lf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); //runs again
         rf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -385,7 +400,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             //this takes care of the movement commands by calculating use of the mecanum wheels
             mecanumMove(lsx,lsy,rsx);
 
-            if (gripperLiftMotor!=null) {
+            /*if (gripperLiftMotor!=null) {
                 if (raiseLowerLift > 0.2) {
                     gripperLiftMotor.setPower(-1.0); //if trigger is positive, raise lift
                     telemetry.addData("Gripper Lift","Raising");
@@ -396,6 +411,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                     gripperLiftMotor.setPower(0.0); //this should do motor braking
                     telemetry.addData("Gripper Lift", "Stopped");
                 }
+                */
                 /* commenting this out until at least the above manual movement works
                 if (height1 || height2 || height3 || height4) {
                     //we're assuming the encoder was zeroed at the bottom before the op mode started (and has tracked changes)
@@ -439,6 +455,26 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                 }
             }
 
+        if (vacuumMotor2!=null) {
+            if (startVacuum && !vacuumRunning && ((runtime.time()-vacuumTime)>0.2)) {
+                vacuumRunning=true;
+                vacuumTime=runtime.time();
+            } else if (startVacuum && vacuumRunning && ((runtime.time()-vacuumTime)>0.2)) {
+                vacuumRunning=false;
+                vacuumTime=runtime.time();
+            } else if (startVacuum) {
+                vacuumTime=runtime.time(); //to avoid self-toggle
+            }
+            if (stopVacuum) vacuumRunning=false; //can't get back button to work
+            if (vacuumRunning) {
+                telemetry.addData("Vacuum","On");
+                vacuumMotor.setPower(1.0);
+            } else {
+                telemetry.addData("Vacuum","Off");
+                vacuumMotor.setPower(0.0);
+            }
+        }
+
             if (armExtendMotor!=null) {
                 if (extendRelicArm && !retractRelicArm) {
                     armExtendMotor.setPower(0.8);
@@ -461,17 +497,31 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                 telemetry.addData("Relic Lift",relicLiftPosition);
             }
 
-            if (armLiftMotor!=null) {
-                if (lowerRaiseArm > 0.2) {
-                    armLiftMotor.setPower(1.0); //if trigger is positive, raise arm
+            //if (armLiftServo!=null) {
+            //    if (lowerRaiseArm > 0.2) {
+              //      armLiftServo.setPower(1.0); //if trigger is positive, raise arm
+               // } else if (lowerRaiseArm < -0.2) {
+                 //   armLiftServo.setPower(-1.0); //if trigger is negative, lower rm
+                //} else {
+                  //  armLiftServo.setPower(0.0); //this should do motor braking
+                //}
+
+
+            if (armLiftServo !=null) {
+                if (lowerRaiseArm > 0.2){
+                    armLiftPosition += armLiftSpeed * (currentLoopTime - lastLoopTime);
+                    if (armLiftPosition > 1.0) armLiftPosition = 1.0;
                 } else if (lowerRaiseArm < -0.2) {
-                    armLiftMotor.setPower(-1.0); //if trigger is negative, lower rm
-                } else {
-                    armLiftMotor.setPower(0.0); //this should do motor braking
+                    armLiftPosition-=armLiftSpeed*(currentLoopTime-lastLoopTime);
+                    if(armLiftPosition<0.0) armLiftPosition=0.0;
+                }
+                armLiftServo.setPosition(armLiftPosition);
+                telemetry.addData("Arm Lift", armLiftPosition);
+
                 }
             }
 
-            if (gripperLeftServo!=null) {
+            /*if (gripperLeftServo!=null) {
                 if (leftClamp>0.2) { //step it up
                     gripperLeftPosition+=gripperLeftClosingSpeed*(currentLoopTime-lastLoopTime);
                     if (gripperLeftPosition>1.0) gripperLeftPosition=1.0;
@@ -494,6 +544,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                 gripperRightServo.setPosition(gripperRightPosition);
                 telemetry.addData("Right Gripper",gripperRightPosition);
             }
+            */
 
             if (vacuumReleaseServo!=null) {
                 if (vacuumRelease>0.2) { //step it up
