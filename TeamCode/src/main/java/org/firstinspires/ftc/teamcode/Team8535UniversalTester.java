@@ -73,8 +73,8 @@ public class Team8535UniversalTester extends LinearOpMode {
         }
     }
 
-    private String[] motorNames={"lf","rf","rb","lb","vacuum","arm_lift","arm_extend","gripper_lift"};
-    private String[] servoNames={"relic_lift","ball_arm","gripper_right","gripper_left","vacuum_release"};
+    private String[] motorNames={"lf","rf","rb","lb","vacuum","vacuum2","arm_extend","gripper_lift"};
+    private String[] servoNames={"gripper_twist", "block_tilt","relic_claw","relic_lift","ball_arm","arm_lift","vacuum_release","vacuum_release2"};
 
     private ArrayList<Device> devices=new ArrayList<Device>();
 

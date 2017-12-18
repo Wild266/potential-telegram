@@ -92,10 +92,13 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private DcMotor lb = null;
     private DcMotor rb = null;
 
-    /*
+
     //Front Gripper
-    //private DcMotor gripperLiftMotor = null;
-    //private Servo gripperLeftServo = null;
+    private DcMotor gripperLiftMotor = null;
+    private Servo gripperTwistServo = null;
+    private double gripperTwistPosition = 0.5;
+    private double gripperTwistSpeed = 0.5;
+    /*private Servo gripperLeftServo = null;
     private Servo gripperRightServo = null;
 
     private double gripperLeftPosition = 0.5; //initial position of left gripper (tune this)
@@ -104,12 +107,12 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private double gripperRightClosingSpeed = 4.0; //range per second
     private double gripperLeftOpeningSpeed = 5.0; //range per second
     private double gripperRightOpeningSpeed = 5.0; //range per second
-*/
+
     private int heightPosition1 = 0; //probably too low but need calibration
     private int heightPosition2 = 100;
     private int heightPosition3 = 200;
     private int heightPosition4 = 300;
-
+*/
     //Relic Arm
     private DcMotor vacuumMotor = null;
     private DcMotor vacuumMotor2 = null; //added
@@ -117,6 +120,9 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private Servo armLiftServo = null; //changed to servo
     private double armLiftPosition = 0.5;
     private Servo relicLiftServo = null;
+    private Servo relicClawServo = null;
+    private double relicClawPosition = 0.5;
+    private double relicClawSpeed = 0.5;
     private Servo vacuumReleaseServo = null;
     private Servo vacuumReleaseServo2 = null; //added
     private double vacuumReleasePosition = 0.5;
@@ -129,11 +135,16 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private double relicLiftSpeed = 0.5;
     private double armLiftSpeed = 0.5;
 
+    //Block Tilt
+    private Servo blockTiltServo = null;
+    private double blockTiltPosition = 1.0;
+    private double blockTiltSpeed = 0.7;
+
     //Ball Arm
     private Servo ballArmServo = null;
     private ColorSensor ballColorSensor = null;
 
-    private double ballArmPosition = 0.5;//initial position of ball arm servo (tune this)
+    private double ballArmPosition = 1.0;//initial position of ball arm servo (tune this)
     private double ballArmSpeed = 0.5; //range per second
     //Base
     private ColorSensor bottomColorSensor = null;
@@ -239,8 +250,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
         //initialize motors/servos/sensors that may vary between bot versions
 
-        //gripperLiftMotor = getMotor("gripper_lift");
-        //if (gripperLiftMotor!=null) gripperLiftMotor.setPower(0.0);
+        gripperLiftMotor = getMotor("gripper_lift");
+        if (gripperLiftMotor != null) gripperLiftMotor.setPower(0.0);
         //gripperLeftServo = getServo("gripper_left");
         //if (gripperLeftServo != null) gripperLeftServo.setPosition(gripperLeftPosition);
         //gripperRightServo = getServo("gripper_right");
@@ -255,9 +266,15 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         if (armLiftServo != null) armLiftServo.setPosition(armLiftPosition);
         relicLiftServo = getServo("relic_lift");
         if (relicLiftServo != null) relicLiftServo.setPosition(relicLiftPosition);
+        gripperTwistServo = getServo("gripper_twist");
+        if (gripperTwistServo !=null) gripperTwistServo.setPosition(gripperTwistPosition);
+        relicClawServo = getServo ("relic_claw");
+        if (relicClawServo != null) relicClawServo.setPosition(relicClawPosition);
+        blockTiltServo = getServo ("block_tilt");
+        if (blockTiltServo != null) blockTiltServo.setPosition(blockTiltPosition);
         vacuumReleaseServo = getServo("vacuum_release");
         if (vacuumReleaseServo != null) vacuumReleaseServo.setPosition(vacuumReleasePosition);
-        vacuumReleaseServo2 = getServo("vacuum-release2");
+        vacuumReleaseServo2 = getServo("vacuum_release2");
         if (vacuumReleaseServo2 != null) vacuumReleaseServo2.setPosition(vacuumReleasePosition2);
         ballArmServo = getServo("ball_arm");
         if (ballArmServo != null) ballArmServo.setPosition(ballArmPosition);
@@ -299,11 +316,11 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         // Reverse the motor that runs backwards when connected directly to the battery
         if (prodbot) {
             lf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
-            rf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
+            rf.setDirection(DcMotor.Direction.FORWARD); //was REVERSE
             lb.setDirection(DcMotor.Direction.REVERSE); //was FORWARD
             rb.setDirection(DcMotor.Direction.FORWARD); //was FORWARD
 
-            //if (gripperLiftMotor!=null) gripperLiftMotor.setDirection(DcMotor.Direction.FORWARD);
+            if (gripperLiftMotor != null) gripperLiftMotor.setDirection(DcMotor.Direction.FORWARD);
             if (vacuumMotor != null) vacuumMotor.setDirection(DcMotor.Direction.FORWARD);
             if (vacuumMotor2 != null) vacuumMotor2.setDirection(DcMotor.Direction.FORWARD);
             if (armExtendMotor != null) armExtendMotor.setDirection(DcMotor.Direction.FORWARD);
@@ -315,7 +332,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             lb.setDirection(DcMotor.Direction.REVERSE); //was FORWARD
             rb.setDirection(DcMotor.Direction.FORWARD); //was FORWARD
 
-            //if (gripperLiftMotor!=null) gripperLiftMotor.setDirection(DcMotor.Direction.FORWARD);
+            if (gripperLiftMotor != null) gripperLiftMotor.setDirection(DcMotor.Direction.FORWARD);
             if (vacuumMotor != null) vacuumMotor.setDirection(DcMotor.Direction.FORWARD);
             if (vacuumMotor2 != null) vacuumMotor2.setDirection(DcMotor.Direction.FORWARD);
             if (armExtendMotor != null) armExtendMotor.setDirection(DcMotor.Direction.FORWARD);
@@ -331,10 +348,10 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         lb.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rb.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        //if (gripperLiftMotor!=null) {
-        //gripperLiftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        //gripperLiftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); //we will probably switch modes for this motor for presets
-        //}
+        if (gripperLiftMotor != null) {
+            gripperLiftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            gripperLiftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); //we will probably switch modes for this motor for presets
+        }
 
         lf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); //runs again
         rf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -394,7 +411,11 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             boolean toggleVacuum2 = gamepad2.right_bumper; //toggle pump2
             double vacuumRelease1 = gamepad2.left_trigger; //release pump1
             double vacuumRelease2 = gamepad2.right_trigger; //release pump2
-
+            double gripperTwistCW = gamepad2.left_stick_x;
+            boolean relicClawOpen = gamepad2.x;
+            boolean relicClawClose = gamepad2.b;
+            boolean blockTiltUp = gamepad2.y;
+            boolean blockTiltDown = gamepad2.a;
             //boolean stopVacuum = gamepad2.back;
 
             if (slowMode) {
@@ -412,18 +433,18 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             //this takes care of the movement commands by calculating use of the mecanum wheels
             mecanumMove(lsx, lsy, rsx);
 
-            /*if (gripperLiftMotor!=null) {
-                if (raiseLowerLift > 0.2) {
+            if (gripperLiftMotor != null) {
+                if (raiseLowerLift < -0.2) {
                     gripperLiftMotor.setPower(-1.0); //if trigger is positive, raise lift
-                    telemetry.addData("Gripper Lift","Raising");
-                } else if (raiseLowerLift < -0.2) {
+                    telemetry.addData("Gripper Lift", "Raising");
+                } else if (raiseLowerLift > 0.2) {
                     gripperLiftMotor.setPower(1.0); //if trigger is negative, lower lift
                     telemetry.addData("Gripper Lift", "Lowering");
                 } else {
                     gripperLiftMotor.setPower(0.0); //this should do motor braking
                     telemetry.addData("Gripper Lift", "Stopped");
                 }
-                */
+
                 /* commenting this out until at least the above manual movement works
                 if (height1 || height2 || height3 || height4) {
                     //we're assuming the encoder was zeroed at the bottom before the op mode started (and has tracked changes)
@@ -446,94 +467,134 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                 }
                 */
 
-            if (toggleVacuumBoth) { //for dual toggle
-                toggleVacuum1 = true;
-                toggleVacuum2 = true;
-            }
-            if (vacuumMotor != null) {
-                if (toggleVacuum1 && !vacuumRunning && ((runtime.time() - vacuumTime) > 0.2)) {
-                    vacuumRunning = true;
-                    vacuumTime = runtime.time();
-                } else if (toggleVacuum1 && vacuumRunning && ((runtime.time() - vacuumTime) > 0.2)) {
-                    vacuumRunning = false;
-                    vacuumTime = runtime.time();
-                } else if (toggleVacuum1) {
-                    vacuumTime = runtime.time(); //to avoid self-toggle
+                if (toggleVacuumBoth) { //for dual toggle
+                    toggleVacuum1 = true;
+                    toggleVacuum2 = true;
                 }
-                //if (stopVacuum) vacuumRunning=false; //can't get back button to work
-                if (vacuumRunning) {
-                    telemetry.addData("Vacuum1", "On");
-                    vacuumMotor.setPower(1.0);
-                } else {
-                    telemetry.addData("Vacuum1", "Off");
-                    vacuumMotor.setPower(0.0);
+                if (vacuumMotor != null) {
+                    if (toggleVacuum1 && !vacuumRunning && ((runtime.time() - vacuumTime) > 0.2)) {
+                        vacuumRunning = true;
+                        vacuumTime = runtime.time();
+                    } else if (toggleVacuum1 && vacuumRunning && ((runtime.time() - vacuumTime) > 0.2)) {
+                        vacuumRunning = false;
+                        vacuumTime = runtime.time();
+                    } else if (toggleVacuum1) {
+                        vacuumTime = runtime.time(); //to avoid self-toggle
+                    }
+                    //if (stopVacuum) vacuumRunning=false; //can't get back button to work
+                    if (vacuumRunning) {
+                        telemetry.addData("Vacuum1", "On");
+                        vacuumMotor.setPower(1.0);
+                    } else {
+                        telemetry.addData("Vacuum1", "Off");
+                        vacuumMotor.setPower(0.0);
+                    }
                 }
-            }
 
-            if (vacuumMotor2 != null) {
-                if (toggleVacuum2 && !vacuumRunning2 && ((runtime.time() - vacuumTime2) > 0.2)) {
-                    vacuumRunning2 = true;
-                    vacuumTime2 = runtime.time();
-                } else if (toggleVacuum2 && vacuumRunning2 && ((runtime.time() - vacuumTime2) > 0.2)) {
-                    vacuumRunning2 = false;
-                    vacuumTime2 = runtime.time();
-                } else if (toggleVacuum2) {
-                    vacuumTime2 = runtime.time(); //to avoid self-toggle
+                if (vacuumMotor2 != null) {
+                    if (toggleVacuum2 && !vacuumRunning2 && ((runtime.time() - vacuumTime2) > 0.2)) {
+                        vacuumRunning2 = true;
+                        vacuumTime2 = runtime.time();
+                    } else if (toggleVacuum2 && vacuumRunning2 && ((runtime.time() - vacuumTime2) > 0.2)) {
+                        vacuumRunning2 = false;
+                        vacuumTime2 = runtime.time();
+                    } else if (toggleVacuum2) {
+                        vacuumTime2 = runtime.time(); //to avoid self-toggle
+                    }
+                    //if (stopVacuum) vacuumRunning=false; //can't get back button to work
+                    if (vacuumRunning2) {
+                        telemetry.addData("Vacuum2", "On");
+                        vacuumMotor2.setPower(1.0);
+                    } else {
+                        telemetry.addData("Vacuum2", "Off");
+                        vacuumMotor2.setPower(0.0);
+                    }
                 }
-                //if (stopVacuum) vacuumRunning=false; //can't get back button to work
-                if (vacuumRunning2) {
-                    telemetry.addData("Vacuum2", "On");
-                    vacuumMotor2.setPower(1.0);
-                } else {
-                    telemetry.addData("Vacuum2", "Off");
-                    vacuumMotor2.setPower(0.0);
+
+                if (armExtendMotor != null) {
+                    if (extendRelicArm && !retractRelicArm) {
+                        armExtendMotor.setPower(0.8);
+                    } else if (retractRelicArm && !extendRelicArm) {
+                        armExtendMotor.setPower(-0.8);
+                    } else {
+                        armExtendMotor.setPower(0.0);
+                    }
                 }
-            }
 
-            if (armExtendMotor != null) {
-                if (extendRelicArm && !retractRelicArm) {
-                    armExtendMotor.setPower(0.8);
-                } else if (retractRelicArm && !extendRelicArm) {
-                    armExtendMotor.setPower(-0.8);
-                } else {
-                    armExtendMotor.setPower(0.0);
+                if (relicLiftServo != null) {
+                    if (raiseRelic) { //step it up
+                        relicLiftPosition += relicLiftSpeed * (currentLoopTime - lastLoopTime);
+                        if (relicLiftPosition > 1.0) relicLiftPosition = 1.0;
+                    } else if (lowerRelic) { //step it down
+                        relicLiftPosition -= relicLiftSpeed * (currentLoopTime - lastLoopTime);
+                        if (relicLiftPosition < 0.0) relicLiftPosition = 0.0;
+                    }
+                    relicLiftServo.setPosition(relicLiftPosition);
+                    telemetry.addData("Relic Lift", relicLiftPosition);
                 }
-            }
 
-            if (relicLiftServo != null) {
-                if (raiseRelic) { //step it up
-                    relicLiftPosition += relicLiftSpeed * (currentLoopTime - lastLoopTime);
-                    if (relicLiftPosition > 1.0) relicLiftPosition = 1.0;
-                } else if (lowerRelic) { //step it down
-                    relicLiftPosition -= relicLiftSpeed * (currentLoopTime - lastLoopTime);
-                    if (relicLiftPosition < 0.0) relicLiftPosition = 0.0;
+                //if (armLiftServo!=null) {
+                //    if (lowerRaiseArm > 0.2) {
+                //      armLiftServo.setPower(1.0); //if trigger is positive, raise arm
+                // } else if (lowerRaiseArm < -0.2) {
+                //   armLiftServo.setPower(-1.0); //if trigger is negative, lower rm
+                //} else {
+                //  armLiftServo.setPower(0.0); //this should do motor braking
+                //}
+
+
+                if (armLiftServo != null) {
+                    if (lowerRaiseArm > 0.2) {
+                        armLiftPosition += armLiftSpeed * (currentLoopTime - lastLoopTime);
+                        if (armLiftPosition > 1.0) armLiftPosition = 1.0;
+                    } else if (lowerRaiseArm < -0.2) {
+                        armLiftPosition -= armLiftSpeed * (currentLoopTime - lastLoopTime);
+                        if (armLiftPosition < 0.0) armLiftPosition = 0.0;
+                    }
+                    armLiftServo.setPosition(armLiftPosition);
+                    telemetry.addData("Arm Lift", armLiftPosition);
+
                 }
-                relicLiftServo.setPosition(relicLiftPosition);
-                telemetry.addData("Relic Lift", relicLiftPosition);
-            }
 
-            //if (armLiftServo!=null) {
-            //    if (lowerRaiseArm > 0.2) {
-            //      armLiftServo.setPower(1.0); //if trigger is positive, raise arm
-            // } else if (lowerRaiseArm < -0.2) {
-            //   armLiftServo.setPower(-1.0); //if trigger is negative, lower rm
-            //} else {
-            //  armLiftServo.setPower(0.0); //this should do motor braking
-            //}
+                if (gripperTwistServo != null) {
+                    if (gripperTwistCW > 0.2) {
+                        gripperTwistPosition += gripperTwistSpeed * (currentLoopTime - lastLoopTime);
+                        if (gripperTwistPosition > 1.0) gripperTwistPosition = 1.0;
+                    } else if (gripperTwistCW < -0.2) {
+                        gripperTwistPosition -= gripperTwistSpeed * (currentLoopTime - lastLoopTime);
+                        if (gripperTwistPosition < 0.0) gripperTwistPosition = 0.0;
+                    }
+                    gripperTwistServo.setPosition(gripperTwistPosition);
+                    telemetry.addData("Gripper Twist", gripperTwistPosition);
 
-
-            if (armLiftServo != null) {
-                if (lowerRaiseArm > 0.2) {
-                    armLiftPosition += armLiftSpeed * (currentLoopTime - lastLoopTime);
-                    if (armLiftPosition > 1.0) armLiftPosition = 1.0;
-                } else if (lowerRaiseArm < -0.2) {
-                    armLiftPosition -= armLiftSpeed * (currentLoopTime - lastLoopTime);
-                    if (armLiftPosition < 0.0) armLiftPosition = 0.0;
                 }
-                armLiftServo.setPosition(armLiftPosition);
-                telemetry.addData("Arm Lift", armLiftPosition);
 
-            }
+                if (relicClawServo != null) {
+                    if (relicClawOpen) {
+                        relicClawPosition += relicClawSpeed * (currentLoopTime - lastLoopTime);
+                        if (relicClawPosition > 1.0) relicClawPosition = 1.0;
+                    } else if (relicClawClose) {
+                        relicClawPosition -= relicClawSpeed * (currentLoopTime - lastLoopTime);
+                        if (relicClawPosition < 0.0) relicClawPosition = 0.0;
+                    }
+                    relicClawServo.setPosition(relicClawPosition);
+                    telemetry.addData("Relic Claw", relicClawPosition);
+
+                }
+
+                if (blockTiltServo != null) {
+                    if (blockTiltUp) {
+                        blockTiltPosition += blockTiltSpeed * (currentLoopTime - lastLoopTime);
+                        if (blockTiltPosition > 1.0) blockTiltPosition = 1.0;
+                    } else if (blockTiltDown) {
+                        blockTiltPosition -= blockTiltSpeed * (currentLoopTime - lastLoopTime);
+                        if (blockTiltPosition < 0.0) blockTiltPosition = 0.0;
+                    }
+                    blockTiltServo.setPosition(blockTiltPosition);
+                    telemetry.addData("Block Tilt", blockTiltPosition);
+
+                }
+
 
             /*if (gripperLeftServo!=null) {
                 if (leftClamp>0.2) { //step it up
@@ -560,69 +621,70 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             }
             */
 
-            if (vacuumReleaseServo != null) {
-                if (vacuumRelease1 > 0.2) { //step it up
-                    vacuumReleasePosition -= vacuumReleaseSpeed * (currentLoopTime - lastLoopTime);
-                    if (vacuumReleasePosition < 0.0) vacuumReleasePosition = 0.0;
-                } else if (vacuumRelease1 < -0.2) { //step it down
-                    vacuumReleasePosition += vacuumReleaseSpeed * (currentLoopTime - lastLoopTime);
-                    if (vacuumReleasePosition > 1.0) vacuumReleasePosition = 1.0;
-                } else {
-                    vacuumReleasePosition = 1.0; //probably want this for a continuous servo
+                if (vacuumReleaseServo != null) {
+                    if (vacuumRelease1 > 0.2) { //step it up
+                        vacuumReleasePosition -= vacuumReleaseSpeed * (currentLoopTime - lastLoopTime);
+                        if (vacuumReleasePosition < 0.0) vacuumReleasePosition = 0.0;
+                    } else if (vacuumRelease1 < -0.2) { //step it down
+                        vacuumReleasePosition += vacuumReleaseSpeed * (currentLoopTime - lastLoopTime);
+                        if (vacuumReleasePosition > 1.0) vacuumReleasePosition = 1.0;
+                    } else {
+                        vacuumReleasePosition = 1.0; //probably want this for a continuous servo
+                    }
+                    vacuumReleaseServo.setPosition(vacuumReleasePosition);
+                    telemetry.addData("Vacuum Release1", vacuumReleasePosition);
                 }
-                vacuumReleaseServo.setPosition(vacuumReleasePosition);
-                telemetry.addData("Vacuum Release1", vacuumReleasePosition);
-            }
 
-            if (vacuumReleaseServo2 != null) {
-                if (vacuumRelease2 > 0.2) { //step it up
-                    vacuumReleasePosition2 -= vacuumReleaseSpeed * (currentLoopTime - lastLoopTime);
-                    if (vacuumReleasePosition2 < 0.0) vacuumReleasePosition2 = 0.0;
-                } else if (vacuumRelease2 < -0.2) { //step it down
-                    vacuumReleasePosition2 += vacuumReleaseSpeed * (currentLoopTime - lastLoopTime);
-                    if (vacuumReleasePosition2 > 1.0) vacuumReleasePosition2 = 1.0;
-                } else {
-                    vacuumReleasePosition2 = 1.0; //probably want this for a continuous servo
+                if (vacuumReleaseServo2 != null) {
+                    if (vacuumRelease2 > 0.2) { //step it up
+                        vacuumReleasePosition2 -= vacuumReleaseSpeed * (currentLoopTime - lastLoopTime);
+                        if (vacuumReleasePosition2 < 0.0) vacuumReleasePosition2 = 0.0;
+                    } else if (vacuumRelease2 < -0.2) { //step it down
+                        vacuumReleasePosition2 += vacuumReleaseSpeed * (currentLoopTime - lastLoopTime);
+                        if (vacuumReleasePosition2 > 1.0) vacuumReleasePosition2 = 1.0;
+                    } else {
+                        vacuumReleasePosition2 = 1.0; //probably want this for a continuous servo
+                    }
+                    vacuumReleaseServo2.setPosition(vacuumReleasePosition2);
+                    telemetry.addData("Vacuum Release2", vacuumReleasePosition2);
                 }
-                vacuumReleaseServo2.setPosition(vacuumReleasePosition2);
-                telemetry.addData("Vacuum Release2", vacuumReleasePosition2);
-            }
 
-            if (ballArmServo != null) {
-                if (raiseBallArm) { //step it up
-                    ballArmPosition += ballArmSpeed * (currentLoopTime - lastLoopTime);
-                    if (ballArmPosition > 1.0) ballArmPosition = 1.0;
-                } else if (lowerBallArm) { //step it down
-                    ballArmPosition -= ballArmSpeed * (currentLoopTime - lastLoopTime);
-                    if (ballArmPosition < 0.0) ballArmPosition = 0.0;
-                } else {
-                    ballArmPosition = 0.5; //probably want this for a continuous servo
+                if (ballArmServo != null) {
+                    if (raiseBallArm) { //step it up
+                        ballArmPosition += ballArmSpeed * (currentLoopTime - lastLoopTime);
+                        if (ballArmPosition > 1.0) ballArmPosition = 1.0;
+                    } else if (lowerBallArm) { //step it down
+                        ballArmPosition -= ballArmSpeed * (currentLoopTime - lastLoopTime);
+                        if (ballArmPosition < 0.0) ballArmPosition = 0.0;
+                    } else {
+                        ballArmPosition = 1.0; //probably want this for a continuous servo
+                    }
+                    ballArmServo.setPosition(ballArmPosition);
+                    telemetry.addData("Ball Arm", ballArmPosition);
                 }
-                ballArmServo.setPosition(ballArmPosition);
-                telemetry.addData("Ball Arm", ballArmPosition);
+
+                if (ballColorSensor != null)
+                    telemetry.addData("BallColor", "R=%d G=%d B=%d A=%d", ballColorSensor.red(), ballColorSensor.green(), ballColorSensor.blue(), ballColorSensor.alpha());
+
+                if (bottomColorSensor != null)
+                    telemetry.addData("BottomColor", "R=%d G=%d B=%d A=%d", bottomColorSensor.red(), bottomColorSensor.green(), bottomColorSensor.blue(), bottomColorSensor.alpha());
+
+                int lfpos = lf.getCurrentPosition(); //show positions to help with auto mode
+                int rfpos = rf.getCurrentPosition();
+                int lbpos = lb.getCurrentPosition();
+                int rbpos = rb.getCurrentPosition();
+
+                telemetry.addData("Positions", "lf=%d rf=%d lb=%d rb=%d", lfpos, rfpos, lbpos, rbpos);
+                if (gyro != null)
+
+                {
+                    int heading = gyro.getHeading();
+                    telemetry.addData("Heading", "%3d degrees", heading);
+                }
+                // Show the elapsed game time
+                telemetry.addData("Status", "Run Time: " + runtime.toString());
+                telemetry.update();
             }
-
-            if (ballColorSensor != null)
-                telemetry.addData("BallColor", "R=%d G=%d B=%d A=%d", ballColorSensor.red(), ballColorSensor.green(), ballColorSensor.blue(), ballColorSensor.alpha());
-
-            if (bottomColorSensor != null)
-                telemetry.addData("BottomColor", "R=%d G=%d B=%d A=%d", bottomColorSensor.red(), bottomColorSensor.green(), bottomColorSensor.blue(), bottomColorSensor.alpha());
-
-            int lfpos = lf.getCurrentPosition(); //show positions to help with auto mode
-            int rfpos = rf.getCurrentPosition();
-            int lbpos = lb.getCurrentPosition();
-            int rbpos = rb.getCurrentPosition();
-
-            telemetry.addData("Positions", "lf=%d rf=%d lb=%d rb=%d", lfpos, rfpos, lbpos, rbpos);
-            if (gyro != null)
-
-            {
-                int heading = gyro.getHeading();
-                telemetry.addData("Heading", "%3d degrees", heading);
-            }
-            // Show the elapsed game time
-            telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.update();
         }
     }
 }

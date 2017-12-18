@@ -55,7 +55,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  *///<-------- Initialization/telemetry comments
 
-@Autonomous(name="Wild", group="Linear Opmode")
+@Autonomous(name="WildAuto", group="Linear Opmode")
 public class Wild_autonomous extends LinearOpMode {
 
     //VuMarks
