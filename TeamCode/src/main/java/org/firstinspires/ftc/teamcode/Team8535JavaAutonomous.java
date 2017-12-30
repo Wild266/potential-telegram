@@ -47,6 +47,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 //@Autonomous(name="JavaAutoR", group="Autonomous")
+//Now not using the gripper so using block tilt to insert the cube
+//Still need to decide what our autonomous run is going to be like
+
+
 public class Team8535JavaAutonomous extends LinearOpMode {
 
     public static final int ALLIANCE_RED=1;
@@ -74,6 +78,8 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
+    private double vacuumTime = 0.0;
+    private double vacuumTime2 = 0.0; //added for second vacuum pump
     private double lastLoopTime=0.0;
     private double currentLoopTime=0.0;
     private double lastHold=0.0;
@@ -100,6 +106,25 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     private Servo ballArmServo; //we'll need a servo to raise/lower the ball arm
     private double ballArmPosition = 0.8;//initial position of ball arm servo (tune this)
     private double ballArmSpeed = 0.5; //range per second
+
+    //Block Tilt
+    private Servo blockTiltServo = null;
+    private double blockTiltPosition = 1.0;
+    private double blockTiltSpeed = 0.7;
+
+    //Vacuum
+    private DcMotor vacuumMotor = null;
+    private DcMotor vacuumMotor2 = null; //added
+    private Servo vacuumReleaseServo = null;
+    private Servo vacuumReleaseServo2 = null; //added
+
+    private double vacuumReleasePosition = 0.5;
+    private double vacuumReleasePosition2 = 0.5;
+
+    private double vacuumReleaseSpeed = 1.0;
+
+    private boolean vacuumRunning = false;
+    private boolean vacuumRunning2 = false;
 
     //Base
     private ColorSensor bottomColorSensor = null;
@@ -244,14 +269,14 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         telemetry.update();
         double startTime=runtime.time();
         if (degrees>0) {
-            mecanumMoveNoScale(0,0,-0.25);
+            mecanumMoveNoScale(0,0,-0.3);
             while(gyro.getHeading()<target) {
                 telemetry.addData("Turning","At %d",gyro.getHeading());
                 telemetry.update();
                 if ((runtime.time()-startTime)>maxTime) break;
             }
         } else {
-            mecanumMoveNoScale(0,0,0.25);
+            mecanumMoveNoScale(0,0,0.3);
             while(gyro.getHeading()>target) {
                 telemetry.addData("Turning","At %d",gyro.getHeading());
                 telemetry.update();
@@ -302,7 +327,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         gripperLiftMotor = getMotor("gripper_lift");
         if (gripperLiftMotor!=null) gripperLiftMotor.setPower(0.0);
         gripperLeftServo = getServo("gripper_left");
-        if (gripperLeftServo != null) gripperLeftServo.setPosition(gripperLeftPosition);
+        //if (gripperLeftServo != null) gripperLeftServo.setPosition(gripperLeftPosition);
         gripperRightServo = getServo("gripper_right");
         if (gripperRightServo != null) gripperRightServo.setPosition(gripperRightPosition);
 
