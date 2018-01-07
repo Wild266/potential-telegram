@@ -97,7 +97,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private DcMotor gripperLiftMotor = null;
     private Servo gripperTwistServo = null;
     private double gripperTwistPosition = 0.5;
-    private double gripperTwistSpeed = 0.5;
+    private double gripperTwistSpeed = 1.0;
     /*private Servo gripperLeftServo = null;
     private Servo gripperRightServo = null;
 
@@ -131,7 +131,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     //private double vacuumReleasePosition3 = 0.3;    //As: for the new vacuums
     private double vacuumReleaseSpeed = 1.0;
 
-    private double relicLiftPosition = 0.5; //initial position (tune this)
+    private double relicLiftPosition = 1.0; //initial position (tune this)
     private double relicLiftSpeed = 0.5;
     private double armLiftSpeed = 0.5;
 
@@ -308,8 +308,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
         //if (gripperLeftServo!=null) gripperLeftServo.setDirection(Servo.Direction.REVERSE); //changed to reverse to flip left gripper servo direction
         //if (gripperRightServo!=null) gripperRightServo.setDirection(Servo.Direction.FORWARD);
-        if (vacuumReleaseServo != null) vacuumReleaseServo.setDirection(Servo.Direction.FORWARD);
-        if (vacuumReleaseServo2 != null) vacuumReleaseServo2.setDirection(Servo.Direction.FORWARD);
+        if (vacuumReleaseServo != null) vacuumReleaseServo.setDirection(Servo.Direction.REVERSE);
+        if (vacuumReleaseServo2 != null) vacuumReleaseServo2.setDirection(Servo.Direction.REVERSE);
         if (ballArmServo != null) ballArmServo.setDirection(Servo.Direction.FORWARD);
 
         // Most robots need the motor on one side to be reversed to drive forward
