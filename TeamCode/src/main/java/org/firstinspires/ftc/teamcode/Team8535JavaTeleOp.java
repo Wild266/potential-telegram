@@ -131,7 +131,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     //private double vacuumReleasePosition3 = 0.3;    //As: for the new vacuums
     private double vacuumReleaseSpeed = 1.0;
 
-    private double relicLiftPosition = 1.0; //initial position (tune this)
+    private double relicLiftPosition = 0.0; //initial position (tune this)
     private double relicLiftSpeed = 0.5;
     private double armLiftSpeed = 0.5;
 
