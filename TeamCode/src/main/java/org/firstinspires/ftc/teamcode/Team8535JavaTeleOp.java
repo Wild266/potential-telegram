@@ -250,33 +250,33 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
         //initialize motors/servos/sensors that may vary between bot versions
 
-        gripperLiftMotor = getMotor("gripper_lift");
+        gripperLiftMotor = getMotor("gripper_lift");  //moves the gripper assembly in the front of the bot up and down
         if (gripperLiftMotor != null) gripperLiftMotor.setPower(0.0);
         //gripperLeftServo = getServo("gripper_left");
         //if (gripperLeftServo != null) gripperLeftServo.setPosition(gripperLeftPosition);
         //gripperRightServo = getServo("gripper_right");
         //if (gripperRightServo != null) gripperRightServo.setPosition(gripperRightPosition);
-        vacuumMotor = getMotor("vacuum");
+        vacuumMotor = getMotor("vacuum"); //vacuum 1
         if (vacuumMotor != null) vacuumMotor.setPower(0.0);
-        vacuumMotor2 = getMotor("vacuum2");
+        vacuumMotor2 = getMotor("vacuum2"); //vacuum 2
         if (vacuumMotor2 != null) vacuumMotor2.setPower(0.0);
-        armExtendMotor = getMotor("arm_extend");
+        armExtendMotor = getMotor("arm_extend"); //moves the relic arm linear slide out and back
         if (armExtendMotor != null) armExtendMotor.setPower(0.0);
-        armLiftServo = getServo("arm_lift");
+        armLiftServo = getServo("arm_lift"); //lifts the rack and pinion for the relic arm up and down
         if (armLiftServo != null) armLiftServo.setPosition(armLiftPosition);
-        relicLiftServo = getServo("relic_lift");
+        relicLiftServo = getServo("relic_lift"); //lift the relic gripper (not the claw) up and down
         if (relicLiftServo != null) relicLiftServo.setPosition(relicLiftPosition);
-        gripperTwistServo = getServo("gripper_twist");
+        gripperTwistServo = getServo("gripper_twist"); //rotates the suction cup arm for the front gripper
         if (gripperTwistServo !=null) gripperTwistServo.setPosition(gripperTwistPosition);
-        relicClawServo = getServo ("relic_claw");
+        relicClawServo = getServo ("relic_claw"); //clamp the claw over the relic
         if (relicClawServo != null) relicClawServo.setPosition(relicClawPosition);
-        blockTiltServo = getServo ("block_tilt");
+        blockTiltServo = getServo ("block_tilt"); //tilt the block holder on top of the bot
         if (blockTiltServo != null) blockTiltServo.setPosition(blockTiltPosition);
-        vacuumReleaseServo = getServo("vacuum_release");
+        vacuumReleaseServo = getServo("vacuum_release"); //release vacuum 1
         if (vacuumReleaseServo != null) vacuumReleaseServo.setPosition(vacuumReleasePosition);
-        vacuumReleaseServo2 = getServo("vacuum_release2");
+        vacuumReleaseServo2 = getServo("vacuum_release2"); //release vacuum 2
         if (vacuumReleaseServo2 != null) vacuumReleaseServo2.setPosition(vacuumReleasePosition2);
-        ballArmServo = getServo("ball_arm");
+        ballArmServo = getServo("ball_arm"); //raise/lower ball arm
         if (ballArmServo != null) ballArmServo.setPosition(ballArmPosition);
         ballColorSensor = getColorSensor("ball_color");
         bottomColorSensor = getColorSensor("bottom_color");
