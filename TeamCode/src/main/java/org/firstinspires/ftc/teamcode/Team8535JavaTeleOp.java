@@ -131,7 +131,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     //private double vacuumReleasePosition3 = 0.3;    //As: for the new vacuums
     private double vacuumReleaseSpeed = 1.0;
 
-    private double relicLiftPosition = 0.5; //initial position (tune this)
+    private double relicLiftPosition = 1.0; //initial position (tune this)
     private double relicLiftSpeed = 1.0;
     private double armLiftSpeed = 0.5;
 
@@ -407,8 +407,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             //double lowerRaiseArm = gamepad2.right_stick_y;  //
             boolean raiseRelicArm = gamepad2.dpad_up;
             boolean lowerRelicArm = gamepad2.dpad_down;
-            boolean raiseRelic = gamepad2.right_stick_y>0.2;
-            boolean lowerRelic = gamepad2.right_stick_y<-0.2;
+            boolean raiseRelic = gamepad2.y;//gamepad2.right_stick_y>0.2;
+            boolean lowerRelic = gamepad2.a;//gamepad2.right_stick_y<-0.2;
 
             //new vacuum controls
             boolean toggleVacuumBoth = gamepad2.start; //toggle both vacuum pumps together
@@ -419,8 +419,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             double gripperTwistCW = gamepad2.right_stick_x; //was left_stick_x
             boolean relicClawOpen = gamepad2.x; //was clawOpen
             boolean relicClawClose = gamepad2.b; //was clawClose
-            boolean blockTiltUp = gamepad2.y;
-            boolean blockTiltDown = gamepad2.a;
+            boolean blockTiltUp = gamepad1.y;
+            boolean blockTiltDown = gamepad1.a;
             //boolean stopVacuum = gamepad2.back;
 
             if (slowMode) {
@@ -555,6 +555,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                     } else if (lowerRelicArm) {
                         armLiftPosition -= armLiftSpeed * (currentLoopTime - lastLoopTime);
                         if (armLiftPosition < 0.0) armLiftPosition = 0.0;
+                    } else {
+                        armLiftPosition=0.5;
                     }
                     armLiftServo.setPosition(armLiftPosition);
                     telemetry.addData("Arm Lift", armLiftPosition);
@@ -581,6 +583,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                     } else if (relicClawClose) {
                         relicClawPosition -= relicClawSpeed * (currentLoopTime - lastLoopTime);
                         if (relicClawPosition < 0.0) relicClawPosition = 0.0;
+                    }else {
+                        relicClawPosition=0.5;
                     }
                     relicClawServo.setPosition(relicClawPosition);
                     telemetry.addData("Relic Claw", relicClawPosition);

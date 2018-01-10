@@ -51,6 +51,7 @@ import java.util.Map;
 public class Team8535GyroTest extends LinearOpMode {
 
     private boolean prodbot = false;
+    public static boolean JOYSTICK_SCALING=true;
 
     //Speed Factor for Fast/Slow Mode
     private double speedFactor = 1.0; //default full speed
