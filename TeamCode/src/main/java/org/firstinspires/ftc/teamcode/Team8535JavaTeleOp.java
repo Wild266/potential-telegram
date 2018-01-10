@@ -96,8 +96,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     //Front Gripper
     private DcMotor gripperLiftMotor = null;
     private Servo gripperTwistServo = null;
-    private double gripperTwistPosition = 0.5;
-    private double gripperTwistSpeed = 1.0;
+    private double gripperTwistPosition = 1.0;
+    private double gripperTwistSpeed = 2.0;
     /*private Servo gripperLeftServo = null;
     private Servo gripperRightServo = null;
 
@@ -121,7 +121,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private double armLiftPosition = 0.5;
     private Servo relicLiftServo = null;
     private Servo relicClawServo = null;
-    private double relicClawPosition = 0.5;
+    private double relicClawPosition = 1.0;
     private double relicClawSpeed = 0.5;
     private Servo vacuumReleaseServo = null;
     private Servo vacuumReleaseServo2 = null; //added
@@ -131,20 +131,20 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     //private double vacuumReleasePosition3 = 0.3;    //As: for the new vacuums
     private double vacuumReleaseSpeed = 1.0;
 
-    private double relicLiftPosition = 0.0; //initial position (tune this)
-    private double relicLiftSpeed = 0.5;
+    private double relicLiftPosition = 0.5; //initial position (tune this)
+    private double relicLiftSpeed = 1.0;
     private double armLiftSpeed = 0.5;
 
     //Block Tilt
     private Servo blockTiltServo = null;
-    private double blockTiltPosition = 1.0;
+    private double blockTiltPosition = 0.25;
     private double blockTiltSpeed = 0.7;
 
     //Ball Arm
     private Servo ballArmServo = null;
     private ColorSensor ballColorSensor = null;
 
-    private double ballArmPosition = 1.0;//initial position of ball arm servo (tune this)
+    private double ballArmPosition = 0.0;//initial position of ball arm servo (tune this)
     private double ballArmSpeed = 0.5; //range per second
     //Base
     private ColorSensor bottomColorSensor = null;
@@ -402,18 +402,18 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             */
             boolean extendRelicArm = gamepad2.dpad_right;
             boolean retractRelicArm = gamepad2.dpad_left;
-            boolean raiseRelic = gamepad2.dpad_up;
-            boolean lowerRelic = gamepad2.dpad_down;
-            double lowerRaiseArm = gamepad2.right_stick_y;
+            boolean relicClawOpen = gamepad2.dpad_up; //was raiseRelic
+            boolean relicClawClose = gamepad2.dpad_down; //was lowerRelic
+            double lowerRaiseArm = gamepad2.right_stick_y;  //
             //new vacuum controls
             boolean toggleVacuumBoth = gamepad2.start; //toggle both vacuum pumps together
             boolean toggleVacuum1 = gamepad2.left_bumper; //toggle pump1
             boolean toggleVacuum2 = gamepad2.right_bumper; //toggle pump2
             double vacuumRelease1 = gamepad2.left_trigger; //release pump1
             double vacuumRelease2 = gamepad2.right_trigger; //release pump2
-            double gripperTwistCW = gamepad2.left_stick_x;
-            boolean relicClawOpen = gamepad2.x;
-            boolean relicClawClose = gamepad2.b;
+            double gripperTwistCW = gamepad2.right_stick_x; //was left_stick_x
+            boolean raiseRelic = gamepad2.x; //was clawOpen
+            boolean lowerRelic = gamepad2.b; //was clawClose
             boolean blockTiltUp = gamepad2.y;
             boolean blockTiltDown = gamepad2.a;
             //boolean stopVacuum = gamepad2.back;
@@ -657,7 +657,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                         ballArmPosition -= ballArmSpeed * (currentLoopTime - lastLoopTime);
                         if (ballArmPosition < 0.0) ballArmPosition = 0.0;
                     } else {
-                        ballArmPosition = 1.0; //probably want this for a continuous servo
+                        ballArmPosition = 0.0; //probably want this for a continuous servo
                     }
                     ballArmServo.setPosition(ballArmPosition);
                     telemetry.addData("Ball Arm", ballArmPosition);
