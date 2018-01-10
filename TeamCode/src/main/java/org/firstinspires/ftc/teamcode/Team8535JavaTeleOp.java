@@ -402,9 +402,14 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             */
             boolean extendRelicArm = gamepad2.dpad_right;
             boolean retractRelicArm = gamepad2.dpad_left;
-            boolean relicClawOpen = gamepad2.dpad_up; //was raiseRelic
-            boolean relicClawClose = gamepad2.dpad_down; //was lowerRelic
-            double lowerRaiseArm = gamepad2.right_stick_y;  //
+            //boolean raiseRelic = gamepad2.dpad_up; //was raiseRelic
+            //boolean lowerRelic = gamepad2.dpad_down; //was lowerRelic
+            //double lowerRaiseArm = gamepad2.right_stick_y;  //
+            boolean raiseRelicArm = gamepad2.dpad_up;
+            boolean lowerRelicArm = gamepad2.dpad_down;
+            boolean raiseRelic = gamepad2.right_stick_y>0.2;
+            boolean lowerRelic = gamepad2.right_stick_y<-0.2;
+
             //new vacuum controls
             boolean toggleVacuumBoth = gamepad2.start; //toggle both vacuum pumps together
             boolean toggleVacuum1 = gamepad2.left_bumper; //toggle pump1
@@ -412,8 +417,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             double vacuumRelease1 = gamepad2.left_trigger; //release pump1
             double vacuumRelease2 = gamepad2.right_trigger; //release pump2
             double gripperTwistCW = gamepad2.right_stick_x; //was left_stick_x
-            boolean raiseRelic = gamepad2.x; //was clawOpen
-            boolean lowerRelic = gamepad2.b; //was clawClose
+            boolean relicClawOpen = gamepad2.x; //was clawOpen
+            boolean relicClawClose = gamepad2.b; //was clawClose
             boolean blockTiltUp = gamepad2.y;
             boolean blockTiltDown = gamepad2.a;
             //boolean stopVacuum = gamepad2.back;
@@ -544,10 +549,10 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
 
                 if (armLiftServo != null) {
-                    if (lowerRaiseArm > 0.2) {
+                    if (raiseRelicArm) {
                         armLiftPosition += armLiftSpeed * (currentLoopTime - lastLoopTime);
                         if (armLiftPosition > 1.0) armLiftPosition = 1.0;
-                    } else if (lowerRaiseArm < -0.2) {
+                    } else if (lowerRelicArm) {
                         armLiftPosition -= armLiftSpeed * (currentLoopTime - lastLoopTime);
                         if (armLiftPosition < 0.0) armLiftPosition = 0.0;
                     }
