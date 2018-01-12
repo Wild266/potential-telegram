@@ -62,8 +62,8 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     public static final int BALL_RED=1;
     public static final int BALL_BLUE=2;
 
-    public static double BALL_ARM_UP=0.8; //fill these in after testing on prod bot
-    public static double BALL_ARM_DOWN=0.4; //fill these in after testing on prod bot
+    public static double BALL_ARM_UP=0; //fill these in after testing on prod bot
+    public static double BALL_ARM_DOWN=0.8; //fill these in after testing on prod bot
 
     //VuMarks
     VuforiaLocalizer vuforia;
@@ -104,7 +104,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
     //Ball Arm
     private Servo ballArmServo; //we'll need a servo to raise/lower the ball arm
-    private double ballArmPosition = 0.8;//initial position of ball arm servo (tune this)
+    private double ballArmPosition = 0;//initial position of ball arm servo (tune this)
     private double ballArmSpeed = 0.5; //range per second
 
     //Block Tilt

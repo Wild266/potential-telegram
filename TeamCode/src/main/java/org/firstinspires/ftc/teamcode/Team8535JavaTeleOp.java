@@ -308,7 +308,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
         //if (gripperLeftServo!=null) gripperLeftServo.setDirection(Servo.Direction.REVERSE); //changed to reverse to flip left gripper servo direction
         //if (gripperRightServo!=null) gripperRightServo.setDirection(Servo.Direction.FORWARD);
-        if (vacuumReleaseServo != null) vacuumReleaseServo.setDirection(Servo.Direction.REVERSE);
+        if (vacuumReleaseServo != null) vacuumReleaseServo.setDirection(Servo.Direction.FORWARD);
         if (vacuumReleaseServo2 != null) vacuumReleaseServo2.setDirection(Servo.Direction.REVERSE);
         if (ballArmServo != null) ballArmServo.setDirection(Servo.Direction.FORWARD);
 
@@ -550,11 +550,11 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
                 if (armLiftServo != null) {
                     if (raiseRelicArm) {
-                        armLiftPosition += armLiftSpeed * (currentLoopTime - lastLoopTime);
-                        if (armLiftPosition > 1.0) armLiftPosition = 1.0;
-                    } else if (lowerRelicArm) {
                         armLiftPosition -= armLiftSpeed * (currentLoopTime - lastLoopTime);
                         if (armLiftPosition < 0.0) armLiftPosition = 0.0;
+                    } else if (lowerRelicArm) {
+                        armLiftPosition += armLiftSpeed * (currentLoopTime - lastLoopTime);
+                        if (armLiftPosition > 1.0) armLiftPosition = 1.0;
                     } else {
                         armLiftPosition=0.5;
                     }
