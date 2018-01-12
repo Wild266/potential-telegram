@@ -263,23 +263,25 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     }
 
     private void gyroTurn(int degrees,ElapsedTime runtime, double maxTime) {
+        /*
         int current=gyro.getHeading();
         int target=current+degrees;
         telemetry.addData("Gyro Turn","At %d Target %d",current,target);
         telemetry.update();
+        */
         double startTime=runtime.time();
         if (degrees>0) {
             mecanumMoveNoScale(0,0,-0.3);
-            while(gyro.getHeading()<target) {
-                telemetry.addData("Turning","At %d",gyro.getHeading());
-                telemetry.update();
+            while(true/*gyro.getHeading()<target*/) {
+                //telemetry.addData("Turning","At %d",gyro.getHeading());
+                //telemetry.update();
                 if ((runtime.time()-startTime)>maxTime) break;
             }
         } else {
             mecanumMoveNoScale(0,0,0.3);
-            while(gyro.getHeading()>target) {
-                telemetry.addData("Turning","At %d",gyro.getHeading());
-                telemetry.update();
+            while(true/*gyro.getHeading()>target*/) {
+                //telemetry.addData("Turning","At %d",gyro.getHeading());
+                //telemetry.update();
                 if ((runtime.time()-startTime)>maxTime) break;
             }
         }
@@ -324,17 +326,20 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         rb  = hardwareMap.get(DcMotor.class, "rb");
 
         //Gripper
+        /*
         gripperLiftMotor = getMotor("gripper_lift");
         if (gripperLiftMotor!=null) gripperLiftMotor.setPower(0.0);
         gripperLeftServo = getServo("gripper_left");
         //if (gripperLeftServo != null) gripperLeftServo.setPosition(gripperLeftPosition);
         gripperRightServo = getServo("gripper_right");
         if (gripperRightServo != null) gripperRightServo.setPosition(gripperRightPosition);
+        */
 
         //Ball Arm
         ballArmServo = getServo("ball_arm");
         if (ballArmServo !=null) ballArmServo.setPosition(ballArmPosition);
         ballColorSensor = getColorSensor("ball_color");
+        /*
         bottomColorSensor = getColorSensor("bottom_color");
         if (bottomColorSensor!=null) bottomColorSensor.setI2cAddress(I2cAddr.create8bit(0x48)); //we believe these are 7bit addresses
         gyro = getGyro("gyro");
@@ -353,6 +358,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
             telemetry.clear(); telemetry.update();
             gyro.resetZAxisIntegrator();
         }
+        */
 
         //vacuumRelease  = hardwareMap.get(DcMotor.class, "release");
 
@@ -454,12 +460,12 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     vuMark = RelicRecoveryVuMark.from(relicTemplate);
                     if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
                         telemetry.addData("VuMark", "%s visible", vuMark);
-                        state = STATE_START_LIFT; //STATE_MOVE_ARM_DOWN; //STATE_START_LIFT //if picking up block
+                        state = STATE_MOVE_ARM_DOWN; //STATE_MOVE_ARM_DOWN; //STATE_START_LIFT //if picking up block
                         holdup(runtime);
                     } else if ((runtime.milliseconds()-time)>5000) {
                         telemetry.addData("VuMark", "Assuming Center");
                         vuMark=RelicRecoveryVuMark.CENTER; //assume center after 5 seconds
-                        state = STATE_START_LIFT;
+                        state = STATE_MOVE_ARM_DOWN;
                         holdup(runtime);
                     }
                     break;
@@ -555,7 +561,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     telemetry.addData("Moving", "%s units", distMap.get(vuMark));
                     if ((runtime.milliseconds() - time) > distMap.get(vuMark)) {
                         mecanumMoveNoScale(0.0,0.0,0.0);
-                        state = STATE_ROTATE_TO_CRYPTOBOX; //after a second were at cryptobox?
+                        state = STATE_DONE; //after a second were at cryptobox?
                         holdup(runtime);
                         try { Thread.sleep(500); } catch (InterruptedException e) {};
                     }
