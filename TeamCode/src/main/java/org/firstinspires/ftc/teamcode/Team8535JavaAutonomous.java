@@ -63,7 +63,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     public static final int BALL_BLUE=2;
 
     public static double BALL_ARM_UP=0; //fill these in after testing on prod bot
-    public static double BALL_ARM_DOWN=0.8; //fill these in after testing on prod bot
+    public static double BALL_ARM_DOWN=0.6; //fill these in after testing on prod bot
 
     //VuMarks
     VuforiaLocalizer vuforia;
@@ -104,7 +104,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
     //Ball Arm
     private Servo ballArmServo; //we'll need a servo to raise/lower the ball arm
-    private double ballArmPosition = 0;//initial position of ball arm servo (tune this)
+    private double ballArmPosition = 0.0;//initial position of ball arm servo (tune this)
     private double ballArmSpeed = 0.5; //range per second
 
     //Block Tilt
@@ -363,8 +363,8 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         //vacuumRelease  = hardwareMap.get(DcMotor.class, "release");
 
         lf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
-        rf.setDirection(DcMotor.Direction.REVERSE); //was REVERSE
-        lb.setDirection(DcMotor.Direction.FORWARD); //was FORWARD
+        rf.setDirection(DcMotor.Direction.FORWARD); //was REVERSE
+        lb.setDirection(DcMotor.Direction.REVERSE); //was FORWARD
         rb.setDirection(DcMotor.Direction.FORWARD); //was FORWARD
 
         if (gripperLeftServo!=null) gripperLeftServo.setDirection(Servo.Direction.REVERSE); //changed to reverse to flip left gripper servo direction
@@ -496,6 +496,8 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                             telemetry.addData("Ball Color", "Unknown");
                             telemetry.update();
                         }
+                        time = runtime.milliseconds();
+
                         state=STATE_ROTATE_BALL_OFF;
                         holdup(runtime);
                     } else {
@@ -509,29 +511,35 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
                 case STATE_ROTATE_BALL_OFF:
                     if (alliance==ALLIANCE_RED) {
-                        if (ballColor == BALL_BLUE) {
-                            gyroTurn(-5, runtime, 1.0);
-                        } else if (ballColor == BALL_RED) {
-                            gyroTurn(5, runtime, 1.0);
+                        if (side == SIDE_LEFT) {
+                            mecanumMoveNoScale(0, -0.5, 0);
+                        } else {
+                            mecanumMoveNoScale(0, 0.5, 0);
                         }
                     }
-                    if (alliance==ALLIANCE_BLUE) {
-                        if (ballColor == BALL_BLUE) {
-                            gyroTurn(5, runtime, 1.0);
-                        } else if (ballColor == BALL_RED) {
-                            gyroTurn(-5, runtime, 1.0);
+
+                    else if (alliance==ALLIANCE_BLUE) {
+                        if (side == SIDE_LEFT) {
+                            mecanumMoveNoScale(0, -0.5, 0);
+                        } else {
+                            mecanumMoveNoScale(0, 0.5, 0);
                         }
                     }
-                    state=STATE_MOVE_ARM_UP;
-                    holdup(runtime);
-                    //should rotate bot CW or CCW depending on alliance and color of ball sensed
-                    //mecanumMove(0, 0, 0.5); //a minus or plus move and for a time (or use a gyro)
+                    //telemetry.addData("Knocking Ball Off");
+                    if ((runtime.milliseconds() - time) > 300) {
+                        mecanumMoveNoScale(0.0,0.0,0.0);
+                        state = STATE_MOVE_ARM_UP; //after a second were at cryptobox?
+                        holdup(runtime);
+                        try { Thread.sleep(500); } catch (InterruptedException e) {};
+                    }
                     break;
+
 
                 case STATE_MOVE_ARM_UP:
                     ballArmServo.setPosition(BALL_ARM_UP);
                     try {Thread.sleep(1000);} catch(InterruptedException e) {};
-                    state = STATE_ROTATE_BACK;
+                    time = runtime.milliseconds();
+                    state = STATE_MOVING;
                     holdup(runtime);
                     //ballArmServo.setPosition(BALL_ARM_UP);
                     //need to wait a bit -- use technique we used with move
