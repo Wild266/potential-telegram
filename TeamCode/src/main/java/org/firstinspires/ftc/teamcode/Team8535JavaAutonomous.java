@@ -615,12 +615,13 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     } else {
                         mecanumMoveNoScale(0, 0.5, 0); //move backward
                     }
-                    int moveTime = 2400;
+                    /*int moveTime = 2400;
                     if (alliance == ALLIANCE_BLUE && side == SIDE_RIGHT) {
                         moveTime = 1800;
                     } else if (alliance == ALLIANCE_RED && side == SIDE_LEFT) {
                         moveTime = 1200;
-                    }
+                    }*/
+                    int moveTime = 1800;
                     //later remember to compensate for ball knocking move
                     telemetry.addData("Moving", "%s units", distMap.get(vuMark));
                     if ((runtime.milliseconds() - time) > moveTime) { //1600 goes to 2400
@@ -697,7 +698,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                 case STATE_MOVE_IN:
                     mecanumMoveNoScale(1, 0, 0); //move right
                     telemetry.addData("Moving Closer to Cryptobox", "");
-                    if ((runtime.milliseconds() - time) > 500) { //1600 goes to 2400
+                    if ((runtime.milliseconds() - time) > 1000) { //was 500
                         mecanumMoveNoScale(0.0,0.0,0.0);
                         state = STATE_MOVE_OUT; //after a second were at cryptobox?
                         holdup(runtime);
