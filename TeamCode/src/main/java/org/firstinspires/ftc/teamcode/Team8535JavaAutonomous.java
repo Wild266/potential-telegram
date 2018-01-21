@@ -176,10 +176,14 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
     private static final int STATE_DONE=23;
 
+    private static final int STATE_EXTRA_MOVE = 24;
+
+    private static final int STATE_EXTRA_ROTATE = 25;
+
     private static String[] stateNames={"Starting","Looking","Moving Arm Down","Sensing Ball Color",
             "Rotating to Knock Ball Off","Moving Arm Up","Rotating Back","Moving to CryptoBox",
             "At CryptoBox","Rotating To CryptoBox","Pushing Block To CryptoBox","Releasing Block",
-            "Lifting Gripper","Opening Gripper","Lowering Gripper","Closing Gripper","Backing Up","Starting Lift","Moving Close to Cryptobox","Dumping Block","Move Back","Move In", "Move Out","Done"
+            "Lifting Gripper","Opening Gripper","Lowering Gripper","Closing Gripper","Backing Up","Starting Lift","Moving Close to Cryptobox","Dumping Block","Move Back","Move In", "Move Out","Done", "Extra Move", "Extra Rotate"
     }; //state names for telemetry
 
     private int state; //the current state our robot is in
@@ -234,6 +238,10 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         } catch (Exception e) {
             return(null);
         }
+    }
+
+    private boolean needsExtra() {
+        return((alliance == ALLIANCE_BLUE && side == SIDE_RIGHT) || (alliance == ALLIANCE_RED && side == SIDE_LEFT));
     }
 
     /**
@@ -567,7 +575,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                         }
                     }
                     //telemetry.addData("Knocking Ball Off");
-                    if ((runtime.milliseconds() - time) > 300) {
+                    if ((runtime.milliseconds() - time) > 300) { //was 300
                         mecanumMoveNoScale(0.0,0.0,0.0);
                         state = STATE_MOVE_ARM_UP; //after a second were at cryptobox?
                         holdup(runtime);
@@ -607,11 +615,42 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     } else {
                         mecanumMoveNoScale(0, 0.5, 0); //move backward
                     }
+                    int moveTime = 2400;
+                    if (needsExtra()) {
+                        moveTime = 1800;
+                    }
                     //later remember to compensate for ball knocking move
                     telemetry.addData("Moving", "%s units", distMap.get(vuMark));
-                    if ((runtime.milliseconds() - time) > 2400) { //1600 goes to 2400
+                    if ((runtime.milliseconds() - time) > moveTime) { //1600 goes to 2400
                         mecanumMoveNoScale(0.0,0.0,0.0);
-                        state = STATE_MOVE_CLOSE; //after a second were at cryptobox?
+                        if (needsExtra()) {
+                            state = STATE_EXTRA_MOVE;
+                        }else {
+                            state = STATE_MOVE_CLOSE; //after a second were at cryptobox?
+                        }
+                        holdup(runtime);
+                        try { Thread.sleep(500); } catch (InterruptedException e) {};
+                        time = runtime.milliseconds();
+                    }
+
+                    break;
+
+                case STATE_EXTRA_MOVE:
+                    mecanumMoveNoScale(-1, 0, 0); //strafe left
+                    if ((runtime.milliseconds() - time) > 950) { //was 850
+                        mecanumMoveNoScale(0.0,0.0,0.0);
+                        state = STATE_EXTRA_ROTATE; //
+                        holdup(runtime);
+                        try { Thread.sleep(500); } catch (InterruptedException e) {};
+                        time = runtime.milliseconds();
+                    }
+                    break;
+
+                case STATE_EXTRA_ROTATE:
+                    mecanumMoveNoScale(0, 0, 1); //rotate counter-clockwise
+                    if ((runtime.milliseconds() - time) > 550) {
+                        mecanumMoveNoScale(0.0,0.0,0.0);
+                        state = STATE_MOVE_CLOSE; //
                         holdup(runtime);
                         try { Thread.sleep(500); } catch (InterruptedException e) {};
                         time = runtime.milliseconds();
