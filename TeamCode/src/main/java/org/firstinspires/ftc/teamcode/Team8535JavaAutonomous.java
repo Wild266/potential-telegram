@@ -64,7 +64,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     public static final int BALL_BLUE=2;
 
     public static double BALL_ARM_UP=0; //fill these in after testing on prod bot
-    public static double BALL_ARM_DOWN=0.5; //fill these in after testing on prod bot
+    public static double BALL_ARM_DOWN=0.7; //fill these in after testing on prod bot //was 0.5 in last event
 
     //VuMarks
     VuforiaLocalizer vuforia;
@@ -111,6 +111,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     //Block Tilt
     private Servo blockTiltServo = null;
     private double blockTiltPosition = 1.0;
+    private double blockDumpPosition = 0.6;
     private double blockTiltSpeed = 0.7;
 
     //Vacuum
@@ -183,6 +184,10 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
     private int state; //the current state our robot is in
     RelicRecoveryVuMark vuMark; //currently detect vuMark
+
+    //persistent telemetry items
+    private String ballSeen="";
+    private String posterSeen="";
 
     public Team8535JavaAutonomous(int alliance,int side) {
         this.alliance=alliance;
@@ -420,6 +425,8 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         while (opModeIsActive()) {
 
             telemetry.addData("State",stateNames[state]); //echo the state we're in
+            telemetry.addData("Poster Seen",posterSeen);
+            telemetry.addData("Ball Seen",ballSeen);
 
             //use a switch statement to take action based on the state we're in
             switch(state) {
@@ -427,7 +434,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     time = runtime.milliseconds();
                     state = STATE_LOOKING; //start looking for the VuMark
                     break;
-
+/*
                 case STATE_START_LIFT:
                     time = runtime.milliseconds();
                     gripperLiftMotor.setPower(-1.0);
@@ -482,15 +489,17 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     state = STATE_MOVE_ARM_DOWN;
                     holdup(runtime);
                     break;
-
+*/
                 case STATE_LOOKING:
                     vuMark = RelicRecoveryVuMark.from(relicTemplate);
                     if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
                         telemetry.addData("VuMark", "%s visible", vuMark);
+                        posterSeen=vuMark.toString();
                         state = STATE_MOVE_ARM_DOWN; //STATE_MOVE_ARM_DOWN; //STATE_START_LIFT //if picking up block
                         holdup(runtime);
                     } else if ((runtime.milliseconds() - time) > 5000) {
                         telemetry.addData("VuMark", "Assuming Center");
+                        posterSeen="Unknown";
                         vuMark = RelicRecoveryVuMark.CENTER; //assume center after 5 seconds
                         state = STATE_MOVE_ARM_DOWN;
                         holdup(runtime);
@@ -518,13 +527,16 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                         if (ballColorSensor.red() > ballColorSensor.blue()) {
                             ballColor = BALL_RED;
                             telemetry.addData("Ball Color", "Red");
+                            ballSeen=String.format("Red red=%d blue=%d",ballColorSensor.red(),ballColorSensor.blue());
                             telemetry.update();
                         } else if (ballColorSensor.blue() > ballColorSensor.red()) {
                             ballColor = BALL_BLUE;
                             telemetry.addData("Ball Color", "Blue");
+                            ballSeen=String.format("Blue red=%d blue=%d",ballColorSensor.red(),ballColorSensor.blue());
                             telemetry.update();
                         } else {
                             telemetry.addData("Ball Color", "Unknown");
+                            ballSeen="Unknown";
                             telemetry.update();
                         }
                         time = runtime.milliseconds();
@@ -541,17 +553,17 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     break;
 
                 case STATE_ROTATE_BALL_OFF:
-                    if (alliance == ALLIANCE_RED) {
-                        if (ballColor == BALL_BLUE) {
-                            mecanumMoveNoScale(0, -0.5, 0);
-                        } else {
-                            mecanumMoveNoScale(0, 0.5, 0);
+                    if (alliance == ALLIANCE_RED) { //forward to cryptobox
+                        if (ballColor == BALL_BLUE) { //blue in front of us
+                            mecanumMoveNoScale(0, -0.5, 0); //move forward
+                        } else { //blue in back of us
+                            mecanumMoveNoScale(0, 0.5, 0); //move backward
                         }
-                    } else if (alliance == ALLIANCE_BLUE) {
-                        if (ballColor == BALL_BLUE) {
-                            mecanumMoveNoScale(0, 0.5, 0);
-                        } else {
-                            mecanumMoveNoScale(0, -0.5, 0);
+                    } else if (alliance == ALLIANCE_BLUE) { //backward to cryptobox
+                        if (ballColor == BALL_BLUE) { //red in back of us
+                            mecanumMoveNoScale(0, 0.5, 0); //move backward
+                        } else { //red in front of us
+                            mecanumMoveNoScale(0, -0.5, 0); //move forward
                         }
                     }
                     //telemetry.addData("Knocking Ball Off");
@@ -574,7 +586,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     //need to wait a bit -- use technique we used with move
                     //should move servo arm to up position
                     break;
-
+/*
                 case STATE_ROTATE_BACK:
                     //should rotate bot opposite of previous rotate step
                     if (ballColor == BALL_BLUE) {
@@ -587,14 +599,15 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     holdup(runtime);
                     time = runtime.milliseconds();
                     break;
-
+*/
                 case STATE_MOVING:
                     //should move by time, encoders, or inertial
                     if (alliance == ALLIANCE_RED) {
-                        mecanumMoveNoScale(0, -0.5, 0);
+                        mecanumMoveNoScale(0, -0.5, 0); //move forward
                     } else {
-                        mecanumMoveNoScale(0, 0.5, 0);
+                        mecanumMoveNoScale(0, 0.5, 0); //move backward
                     }
+                    //later remember to compensate for ball knocking move
                     telemetry.addData("Moving", "%s units", distMap.get(vuMark));
                     if ((runtime.milliseconds() - time) > 2400) { //1600 goes to 2400
                         mecanumMoveNoScale(0.0,0.0,0.0);
@@ -606,7 +619,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     break;
 
                 case STATE_MOVE_CLOSE:
-                    mecanumMoveNoScale(1, 0, 0);
+                    mecanumMoveNoScale(1, 0, 0); //move right
                     telemetry.addData("Moving Closer to Cryptobox", "");
                     if ((runtime.milliseconds() - time) > 500) { //1600 goes to 2400
                         mecanumMoveNoScale(0.0,0.0,0.0);
@@ -617,8 +630,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     break;
 
                 case STATE_DUMPING_BLOCK:
-                    blockTiltPosition=0.6;
-                    if (blockTiltServo !=null) blockTiltServo.setPosition(blockTiltPosition);
+                    if (blockTiltServo !=null) blockTiltServo.setPosition(blockDumpPosition);
                     state = STATE_MOVE_BACK; //after a second were at cryptobox?
                     holdup(runtime);
                     try { Thread.sleep(500); } catch (InterruptedException e) {};
@@ -626,7 +638,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     break;
 
                 case STATE_MOVE_BACK:
-                    mecanumMoveNoScale(-1, 0, 0);
+                    mecanumMoveNoScale(-1, 0, 0); //move left
                     telemetry.addData("Moving Closer to Cryptobox", "");
                     if ((runtime.milliseconds() - time) > 500) { //1600 goes to 2400
                         mecanumMoveNoScale(0.0,0.0,0.0);
@@ -634,12 +646,11 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                         holdup(runtime);
                         try { Thread.sleep(500); } catch (InterruptedException e) {};
                         time = runtime.milliseconds();
-
                     }
                     break;
 
                 case STATE_MOVE_IN:
-                    mecanumMoveNoScale(1, 0, 0);
+                    mecanumMoveNoScale(1, 0, 0); //move right
                     telemetry.addData("Moving Closer to Cryptobox", "");
                     if ((runtime.milliseconds() - time) > 500) { //1600 goes to 2400
                         mecanumMoveNoScale(0.0,0.0,0.0);
@@ -652,7 +663,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     break;
 
                 case STATE_MOVE_OUT:
-                    mecanumMoveNoScale(-0.75, 0, 0);
+                    mecanumMoveNoScale(-0.75, 0, 0); //move more slowly left
                     telemetry.addData("Moving Closer to Cryptobox", "");
                     if ((runtime.milliseconds() - time) > 500) { //1600 goes to 2400
                         mecanumMoveNoScale(0.0,0.0,0.0);
@@ -661,7 +672,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                         try { Thread.sleep(500); } catch (InterruptedException e) {};
                     }
                     break;
-
+/*
                 case STATE_ROTATE_TO_CRYPTOBOX:
                     gyroTurn(-90,runtime,4.0);
                     state= STATE_PUSH_BLOCK_TO_CRYPTOBOX;
@@ -695,6 +706,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                         requestOpModeStop();
                     }
                     break;
+                 */
             }
 
             // Show the elapsed game time
