@@ -616,8 +616,10 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                         mecanumMoveNoScale(0, 0.5, 0); //move backward
                     }
                     int moveTime = 2400;
-                    if (needsExtra()) {
+                    if (alliance == ALLIANCE_BLUE && side == SIDE_RIGHT) {
                         moveTime = 1800;
+                    } else if (alliance == ALLIANCE_RED && side == SIDE_LEFT) {
+                        moveTime = 1200;
                     }
                     //later remember to compensate for ball knocking move
                     telemetry.addData("Moving", "%s units", distMap.get(vuMark));
@@ -647,7 +649,11 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     break;
 
                 case STATE_EXTRA_ROTATE:
-                    mecanumMoveNoScale(0, 0, 1); //rotate counter-clockwise
+                    if (alliance == ALLIANCE_BLUE) {
+                        mecanumMoveNoScale(0, 0, 1); //rotate counter-clockwise
+                    } else {
+                        mecanumMoveNoScale(0, 0, -1); //rotate clockwise
+                    }
                     if ((runtime.milliseconds() - time) > 550) {
                         mecanumMoveNoScale(0.0,0.0,0.0);
                         state = STATE_MOVE_CLOSE; //
