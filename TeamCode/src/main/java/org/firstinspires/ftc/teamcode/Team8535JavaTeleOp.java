@@ -137,7 +137,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
     //Block Tilt
     private Servo blockTiltServo = null;
-    private double blockTiltPosition = 0.25;
+    private double blockTiltPosition = 0.95;
     private double blockTiltSpeed = 0.7;
 
     //Ball Arm

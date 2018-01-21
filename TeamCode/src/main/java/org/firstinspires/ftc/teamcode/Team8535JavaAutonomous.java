@@ -163,12 +163,22 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
     private static final int STATE_START_LIFT=17;
 
-    private static final int STATE_DONE=18;
+    private static final int STATE_MOVE_CLOSE=18;
+
+    private static final int STATE_DUMPING_BLOCK = 19;
+
+    private static final int STATE_MOVE_BACK = 20;
+
+    private static final int STATE_MOVE_IN = 21;
+
+    private static final int STATE_MOVE_OUT = 22;
+
+    private static final int STATE_DONE=23;
 
     private static String[] stateNames={"Starting","Looking","Moving Arm Down","Sensing Ball Color",
             "Rotating to Knock Ball Off","Moving Arm Up","Rotating Back","Moving to CryptoBox",
             "At CryptoBox","Rotating To CryptoBox","Pushing Block To CryptoBox","Releasing Block",
-            "Lifting Gripper","Opening Gripper","Lowering Gripper","Closing Gripper","Backing Up","Starting Lift","Done"
+            "Lifting Gripper","Opening Gripper","Lowering Gripper","Closing Gripper","Backing Up","Starting Lift","Moving Close to Cryptobox","Dumping Block","Move Back","Move In", "Move Out","Done"
     }; //state names for telemetry
 
     private int state; //the current state our robot is in
@@ -340,6 +350,10 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         ballArmServo = getServo("ball_arm");
         if (ballArmServo !=null) ballArmServo.setPosition(ballArmPosition);
         ballColorSensor = getColorSensor("ball_color");
+
+        //Block Tilt
+        blockTiltServo = getServo("block_tilt");
+        if (blockTiltServo !=null) blockTiltServo.setPosition(blockTiltPosition);
         /*
         bottomColorSensor = getColorSensor("bottom_color");
         if (bottomColorSensor!=null) bottomColorSensor.setI2cAddress(I2cAddr.create8bit(0x48)); //we believe these are 7bit addresses
@@ -583,6 +597,64 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     }
                     telemetry.addData("Moving", "%s units", distMap.get(vuMark));
                     if ((runtime.milliseconds() - time) > 2400) { //1600 goes to 2400
+                        mecanumMoveNoScale(0.0,0.0,0.0);
+                        state = STATE_MOVE_CLOSE; //after a second were at cryptobox?
+                        holdup(runtime);
+                        try { Thread.sleep(500); } catch (InterruptedException e) {};
+                        time = runtime.milliseconds();
+                    }
+                    break;
+
+                case STATE_MOVE_CLOSE:
+                    mecanumMoveNoScale(1, 0, 0);
+                    telemetry.addData("Moving Closer to Cryptobox", "");
+                    if ((runtime.milliseconds() - time) > 500) { //1600 goes to 2400
+                        mecanumMoveNoScale(0.0,0.0,0.0);
+                        state = STATE_DUMPING_BLOCK; //after a second were at cryptobox?
+                        holdup(runtime);
+                        try { Thread.sleep(500); } catch (InterruptedException e) {};
+                    }
+                    break;
+
+                case STATE_DUMPING_BLOCK:
+                    blockTiltPosition=0.6;
+                    if (blockTiltServo !=null) blockTiltServo.setPosition(blockTiltPosition);
+                    state = STATE_MOVE_BACK; //after a second were at cryptobox?
+                    holdup(runtime);
+                    try { Thread.sleep(500); } catch (InterruptedException e) {};
+                    time = runtime.milliseconds();
+                    break;
+
+                case STATE_MOVE_BACK:
+                    mecanumMoveNoScale(-1, 0, 0);
+                    telemetry.addData("Moving Closer to Cryptobox", "");
+                    if ((runtime.milliseconds() - time) > 500) { //1600 goes to 2400
+                        mecanumMoveNoScale(0.0,0.0,0.0);
+                        state = STATE_MOVE_IN; //after a second were at cryptobox?
+                        holdup(runtime);
+                        try { Thread.sleep(500); } catch (InterruptedException e) {};
+                        time = runtime.milliseconds();
+
+                    }
+                    break;
+
+                case STATE_MOVE_IN:
+                    mecanumMoveNoScale(1, 0, 0);
+                    telemetry.addData("Moving Closer to Cryptobox", "");
+                    if ((runtime.milliseconds() - time) > 500) { //1600 goes to 2400
+                        mecanumMoveNoScale(0.0,0.0,0.0);
+                        state = STATE_MOVE_OUT; //after a second were at cryptobox?
+                        holdup(runtime);
+                        try { Thread.sleep(500); } catch (InterruptedException e) {};
+                        time = runtime.milliseconds();
+
+                    }
+                    break;
+
+                case STATE_MOVE_OUT:
+                    mecanumMoveNoScale(-0.75, 0, 0);
+                    telemetry.addData("Moving Closer to Cryptobox", "");
+                    if ((runtime.milliseconds() - time) > 500) { //1600 goes to 2400
                         mecanumMoveNoScale(0.0,0.0,0.0);
                         state = STATE_DONE; //after a second were at cryptobox?
                         holdup(runtime);
