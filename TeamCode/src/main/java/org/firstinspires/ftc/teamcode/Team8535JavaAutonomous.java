@@ -32,8 +32,6 @@ import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.I2cDevice;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -46,9 +44,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
-import java.util.String;
+import java.util.Map;
 
 //@Autonomous(name="JavaAutoR", group="Autonomous")
 //Now not using the gripper so using block tilt to insert the cube
@@ -137,7 +134,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     ColorSensor ballColorSensor; //we'll need a color sensor to detect ball color
     private int ballColor=0;
 
-    private List encoderStates=new ArrayList<String>();
+    private List<String> encoderStates=new ArrayList<String>();
 
     //Gyro Sensor
     ModernRoboticsI2cGyro gyro; //a gyro would be really useful
