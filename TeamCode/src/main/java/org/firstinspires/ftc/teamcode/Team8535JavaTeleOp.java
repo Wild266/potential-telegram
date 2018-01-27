@@ -129,7 +129,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private double vacuumReleasePosition2 = 0.5; //changed to 0.5 (why 0.7?)
 
     //private double vacuumReleasePosition3 = 0.3;    //As: for the new vacuums
-    private double vacuumReleaseSpeed = 1.0;
+    private double vacuumReleaseSpeed = 3.0;
 
     private double relicLiftPosition = 1.0; //initial position (tune this)
     private double relicLiftSpeed = 1.0;
@@ -209,9 +209,9 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private void mecanumMove(double lsx, double lsy, double rsx) {
 
         if (JOYSTICK_SCALING) {
-            lsy = Math.pow(lsy, 5.0);
-            lsx = Math.pow(lsx, 5.0);
-            rsx = Math.pow(rsx, 5.0);
+            lsy = Math.pow(lsy, 1.0);
+            lsx = Math.pow(lsx, 1.0);
+            rsx = Math.pow(rsx, 1.0);
         }
 
         double r = Math.sqrt(lsy * lsy + lsx * lsx);
@@ -424,7 +424,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             //boolean stopVacuum = gamepad2.back;
 
             if (slowMode) {
-                speedFactor = 0.75;
+                speedFactor = 0.9; //was 0.75;
             } else {
                 speedFactor = 1.0;
             }
@@ -439,11 +439,11 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             mecanumMove(lsx, lsy, rsx);
 
             if (gripperLiftMotor != null) {
-                if (raiseLowerLift < -0.2) {
-                    gripperLiftMotor.setPower(-1.0); //if trigger is positive, raise lift
+                if (raiseLowerLift < -0.09/*-0.2*/) {
+                    gripperLiftMotor.setPower(raiseLowerLift/*-1.0*/); //if trigger is positive, raise lift
                     telemetry.addData("Gripper Lift", "Raising");
-                } else if (raiseLowerLift > 0.2) {
-                    gripperLiftMotor.setPower(1.0); //if trigger is negative, lower lift
+                } else if (raiseLowerLift > 0.09/*0.2*/) {
+                    gripperLiftMotor.setPower(raiseLowerLift/*1.0*/); //if trigger is negative, lower lift
                     telemetry.addData("Gripper Lift", "Lowering");
                 } else {
                     gripperLiftMotor.setPower(0.0); //this should do motor braking
@@ -631,6 +631,12 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             */
 
                 if (vacuumReleaseServo != null) {
+                    if (vacuumRelease1>0.09) {
+                        vacuumReleasePosition=0.0;
+                    } else {
+                        vacuumReleasePosition=1.0;
+                    }
+                    /*
                     if (vacuumRelease1 > 0.2) { //step it up
                         vacuumReleasePosition -= vacuumReleaseSpeed * (currentLoopTime - lastLoopTime);
                         if (vacuumReleasePosition < 0.0) vacuumReleasePosition = 0.0;
@@ -640,11 +646,18 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                     } else {
                         vacuumReleasePosition = 1.0; //probably want this for a continuous servo
                     }
+                    */
                     vacuumReleaseServo.setPosition(vacuumReleasePosition);
                     telemetry.addData("Vacuum Release1", vacuumReleasePosition);
                 }
 
                 if (vacuumReleaseServo2 != null) {
+                    if (vacuumRelease2>0.09) {
+                        vacuumReleasePosition2=0.0;
+                    } else {
+                        vacuumReleasePosition2=1.0;
+                    }
+                    /*
                     if (vacuumRelease2 > 0.2) { //step it up
                         vacuumReleasePosition2 -= vacuumReleaseSpeed * (currentLoopTime - lastLoopTime);
                         if (vacuumReleasePosition2 < 0.0) vacuumReleasePosition2 = 0.0;
@@ -654,6 +667,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                     } else {
                         vacuumReleasePosition2 = 1.0; //probably want this for a continuous servo
                     }
+                    */
                     vacuumReleaseServo2.setPosition(vacuumReleasePosition2);
                     telemetry.addData("Vacuum Release2", vacuumReleasePosition2);
                 }

@@ -28,6 +28,8 @@
  */
 package org.firstinspires.ftc.teamcode;
 
+import android.os.Environment;
+
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
@@ -42,7 +44,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackable;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaTrackables;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,6 +79,44 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     private int side;
 
     private boolean prodbot = false;
+
+    /*
+    Ball Forward
+
+    Before Ball 0 0 0 0
+    After Ball -113 -146 -159 0
+    After Move -1761 -2125 -2081 0
+    After Move Close -1382 -2715 -2665 0
+    After Move Back -1869 -2241 -2189 0
+    After Move In -1193 -2980 -3135 0
+    After Move Out -1516 -2631 -2756 0
+
+    Ball Backward
+
+    After Ball 183 120 127 0
+    After Move -1290 -1566 -1569 0
+    After Move Close -956 -2163 -2148
+    After Move Back -1400 -1742 -1699
+    After Move In -598 -2663 -2716
+    After Move Out -945 -2351 -2416
+
+    Ball Forward (Success)
+
+    After Ball -94 -130 -125
+    After Move -1732 -2028 -1953
+    After Move Close -1388 -2557 -2457
+    After Move Back -1829 -2126 -2005
+    After Move In -1278 -2808 -2855
+    After Move Out -1624 -2506 -2554
+
+
+
+    blue red 74 blue 120
+    red red 112 blue 47
+    blue red 40 blue 43
+    blue red 55 blue 91
+
+     */
 
     //Speed Factor for Fast/Slow Mode
     private double speedFactor = 1.0; //default full speed
@@ -109,8 +154,8 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
     //Block Tilt
     private Servo blockTiltServo = null;
-    private double blockTiltPosition = 1.0;
-    private double blockDumpPosition = 0.6;
+    private double blockTiltPosition = 0.95;
+    private double blockDumpPosition = 0.35;
     private double blockTiltSpeed = 0.7;
 
     //Vacuum
@@ -313,17 +358,43 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         mecanumMoveNoScale(0,0,0);
     }
 
+    private void writeToTeamLog(String line) {
+        File sdCard = Environment.getExternalStorageDirectory();
+        File dir = new File(sdCard.getAbsolutePath() + "/team8535");
+        dir.mkdirs();
+        try {
+            File file=new File(dir,"autonomous.log");
+            PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(file, true)));
+            out.println(line);
+            out.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     private void recordState(String label) {
         int lfpos = lf.getCurrentPosition(); //show positions to help with auto mode
         int rfpos = rf.getCurrentPosition();
         int lbpos = lb.getCurrentPosition();
         int rbpos = rb.getCurrentPosition();
         encoderStates.add(String.format(label+":lf=%d rf=%d lb=%d rb=%d", lfpos, rfpos, lbpos, rbpos));
+        writeToTeamLog(String.format(label+":lf=%d rf=%d lb=%d rb=%d", lfpos, rfpos, lbpos, rbpos));
     }
 
     @Override
     public void runOpMode() {
-
+        writeToTeamLog("Beginning Run --------------");
+        writeToTeamLog((new Date()).toString());
+        if (alliance==ALLIANCE_BLUE) {
+            writeToTeamLog("Alliance=Blue");
+        } else {
+            writeToTeamLog("Alliance=Red");
+        }
+        if (side==SIDE_LEFT) {
+            writeToTeamLog("Side=Left");
+        } else {
+            writeToTeamLog("Side=Right");
+        }
         VuforiaLocalizer.Parameters parameters=null;
         if (SHOW_CAMERA) {
             int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
@@ -522,11 +593,13 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     if (vuMark != RelicRecoveryVuMark.UNKNOWN) {
                         telemetry.addData("VuMark", "%s visible", vuMark);
                         posterSeen=vuMark.toString();
+                        writeToTeamLog("PosterSeen="+posterSeen);
                         state = STATE_MOVE_ARM_DOWN; //STATE_MOVE_ARM_DOWN; //STATE_START_LIFT //if picking up block
                         holdup(runtime);
                     } else if ((runtime.milliseconds() - time) > 5000) {
                         telemetry.addData("VuMark", "Assuming Center");
                         posterSeen="Unknown";
+                        writeToTeamLog("PosterSeen="+posterSeen);
                         vuMark = RelicRecoveryVuMark.CENTER; //assume center after 5 seconds
                         state = STATE_MOVE_ARM_DOWN;
                         holdup(runtime);
@@ -566,6 +639,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                             ballSeen="Unknown";
                             telemetry.update();
                         }
+                        writeToTeamLog("BallSeen="+ballSeen);
                         time = runtime.milliseconds();
                         recordState("Before Ball");
                         state = STATE_ROTATE_BALL_OFF;
@@ -581,13 +655,13 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
                 case STATE_ROTATE_BALL_OFF:
                     if (alliance == ALLIANCE_RED) { //forward to cryptobox
-                        if (ballColor == BALL_BLUE) { //blue in front of us
+                        if (ballColor == BALL_RED) { //blue in front of us
                             mecanumMoveNoScale(0, -0.5, 0); //move forward
                         } else { //blue in back of us
                             mecanumMoveNoScale(0, 0.5, 0); //move backward
                         }
                     } else if (alliance == ALLIANCE_BLUE) { //backward to cryptobox
-                        if (ballColor == BALL_BLUE) { //red in back of us
+                        if (ballColor == BALL_RED) { //red in back of us
                             mecanumMoveNoScale(0, 0.5, 0); //move backward
                         } else { //red in front of us
                             mecanumMoveNoScale(0, -0.5, 0); //move forward
