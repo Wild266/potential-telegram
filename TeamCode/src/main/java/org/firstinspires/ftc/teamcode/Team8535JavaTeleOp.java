@@ -85,6 +85,10 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private double vacuumTime2 = 0.0; //added for second vacuum pump
     private double lastLoopTime = 0.0;
     private double currentLoopTime = 0.0;
+    private int lastVac=0;
+    private int curVac=0;
+    private int lastVac2=0;
+    private int curVac2=0;
 
     //Drive Motors
     private DcMotor lf = null;
@@ -347,6 +351,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         rf.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         lb.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rb.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        vacuumMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        vacuumMotor2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         if (gripperLiftMotor != null) {
             gripperLiftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -357,6 +363,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         rf.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         lb.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rb.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        vacuumMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        vacuumMotor2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         if (ballColorSensor != null) {
             ballColorSensor.enableLed(true);
@@ -367,9 +375,18 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         }
 
         currentLoopTime = runtime.time();
+        curVac=vacuumMotor.getCurrentPosition();
+        curVac2=vacuumMotor2.getCurrentPosition();
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            lastVac=curVac;
+            lastVac2=curVac2;
+            curVac=vacuumMotor.getCurrentPosition();
+            curVac2=vacuumMotor2.getCurrentPosition();
+            telemetry.addData("Vac1 Speed",(curVac-lastVac));
+            telemetry.addData("Vac2 Speed",(curVac2-lastVac2));
+
             lastLoopTime = currentLoopTime; //the loop timing difference gives our actively stepping servos the time to use with their speed multipliers
             currentLoopTime = runtime.time();
             telemetry.addData("Loop Time", (currentLoopTime - lastLoopTime)); //hopefully reasonable speed for movement determinations

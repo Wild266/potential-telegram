@@ -178,6 +178,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     //Ball Color Sensor
     ColorSensor ballColorSensor; //we'll need a color sensor to detect ball color
     private int ballColor=0;
+    private int minColorThresh=20;
 
     private List<String> encoderStates=new ArrayList<String>();
 
@@ -330,6 +331,17 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         rf.setPower(v2);
         lb.setPower(v3);
         rb.setPower(v4);
+    }
+
+    private void mecanumEncoderMove(double lsx,double lsy,double rsx,DcMotor motor,int target,int timeout) {
+        int start=motor.getCurrentPosition();
+        boolean dir=(start<target); //true if we're moving up, false if moving down
+        int current=start;
+        mecanumMoveNoScale(lsx,lsy,rsx);
+        while (opModeIsActive() && ((dir && current<target) || (!dir && current>target))) {
+            current=motor.getCurrentPosition();
+        }
+        mecanumMoveNoScale(0,0,0);
     }
 
     private void gyroTurn(int degrees,ElapsedTime runtime, double maxTime) {
@@ -624,12 +636,12 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     telemetry.addData("BallColor", "R=%d G=%d B=%d A=%d", ballColorSensor.red(), ballColorSensor.green(), ballColorSensor.blue(), ballColorSensor.alpha());
                     if ((ballColorSensor.red() != 0 && ballColorSensor.red() != 255)
                             || ballColorSensor.blue() != 0 && ballColorSensor.blue() != 255) {
-                        if (ballColorSensor.red() > ballColorSensor.blue()) {
+                        if (ballColorSensor.red() > (ballColorSensor.blue()+minColorThresh)) {
                             ballColor = BALL_RED;
                             telemetry.addData("Ball Color", "Red");
                             ballSeen=String.format("Red red=%d blue=%d",ballColorSensor.red(),ballColorSensor.blue());
                             telemetry.update();
-                        } else if (ballColorSensor.blue() > ballColorSensor.red()) {
+                        } else if (ballColorSensor.blue() > (ballColorSensor.red()+minColorThresh)) {
                             ballColor = BALL_BLUE;
                             telemetry.addData("Ball Color", "Blue");
                             ballSeen=String.format("Blue red=%d blue=%d",ballColorSensor.red(),ballColorSensor.blue());
