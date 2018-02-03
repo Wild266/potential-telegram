@@ -380,16 +380,16 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+            lastLoopTime = currentLoopTime; //the loop timing difference gives our actively stepping servos the time to use with their speed multipliers
             lastVac=curVac;
             lastVac2=curVac2;
+            currentLoopTime = runtime.time();
             curVac=vacuumMotor.getCurrentPosition();
             curVac2=vacuumMotor2.getCurrentPosition();
-            telemetry.addData("Vac1 Speed",(curVac-lastVac));
-            telemetry.addData("Vac2 Speed",(curVac2-lastVac2));
-
-            lastLoopTime = currentLoopTime; //the loop timing difference gives our actively stepping servos the time to use with their speed multipliers
-            currentLoopTime = runtime.time();
-            telemetry.addData("Loop Time", (currentLoopTime - lastLoopTime)); //hopefully reasonable speed for movement determinations
+            double timedif=(currentLoopTime-lastLoopTime);
+            telemetry.addData("Vac1 Speed RPM",60.0*(curVac-lastVac)/timedif);
+            telemetry.addData("Vac2 Speed RPM",60.0*(curVac2-lastVac2)/timedif);
+            telemetry.addData("Loop Time (Secs)",timedif); //hopefully reasonable speed for movement determinations
 
             //translate some gamepad controls to variables
 
