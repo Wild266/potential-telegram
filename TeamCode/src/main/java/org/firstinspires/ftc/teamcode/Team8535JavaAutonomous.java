@@ -70,6 +70,8 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     public static double BALL_ARM_UP=0; //fill these in after testing on prod bot
     public static double BALL_ARM_DOWN=0.7; //fill these in after testing on prod bot //was 0.5 in last event
 
+    public static boolean useEncoderMoves=false;
+
     //VuMarks
     VuforiaLocalizer vuforia;
 
@@ -319,6 +321,14 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         rf.setPower(v2);
         lb.setPower(v3);
         rb.setPower(v4);
+    }
+
+    private void mecanumTimeMove(double lsx,double lsy,double rsx,int moveTime) {
+        mecanumMoveNoScale(lsx,lsy,rsx);
+        time = runtime.milliseconds();
+        while (opModeIsActive() && (runtime.milliseconds() - time) > moveTime) {
+        }
+        mecanumMoveNoScale(0,0,0);
     }
 
     private void mecanumEncoderMove(double lsx,double lsy,double rsx,DcMotor motor,int target,int timeout) {
