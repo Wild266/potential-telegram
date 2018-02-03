@@ -395,6 +395,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                     gripperLiftMotor.setPower(0.0); //this should do motor braking
                     telemetry.addData("Gripper Lift", "Stopped");
                 }
+                telemetry.addData("Gripper Position",gripperLiftMotor.getCurrentPosition());
 
                 if (toggleVacuumBoth) { //for dual toggle
                     toggleVacuum1 = true;
