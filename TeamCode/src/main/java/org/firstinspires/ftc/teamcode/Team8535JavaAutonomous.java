@@ -70,7 +70,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     public static double BALL_ARM_UP=0; //fill these in after testing on prod bot
     public static double BALL_ARM_DOWN=0.7; //fill these in after testing on prod bot //was 0.5 in last event
 
-    public static boolean useEncoderMoves=false;
+    public static boolean useEncoderMoves=true; //if true uses encoders for moves, if false used timed moves
 
     //VuMarks
     VuforiaLocalizer vuforia;
