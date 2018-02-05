@@ -344,7 +344,8 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         boolean dir=(start<target); //true if we're moving up, false if moving down
         int current=start;
         mecanumMoveNoScale(lsx,lsy,rsx);
-        while (opModeIsActive() && ((dir && current<target) || (!dir && current>target))) {
+        time = runtime.milliseconds()
+        while (opModeIsActive() && ((dir && current<target) || (!dir && current>target)) && ((runtime.milliseconds()-time)<timeout)) {
             current=motor.getCurrentPosition();
         }
         mecanumMoveNoScale(0,0,0);
