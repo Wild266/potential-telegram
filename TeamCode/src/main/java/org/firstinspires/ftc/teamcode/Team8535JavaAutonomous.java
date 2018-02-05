@@ -334,7 +334,7 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     private void mecanumTimeMove(double lsx,double lsy,double rsx,int moveTime) {
         mecanumMoveNoScale(lsx,lsy,rsx);
         time = runtime.milliseconds();
-        while (opModeIsActive() && (runtime.milliseconds() - time) > moveTime) {
+        while (opModeIsActive() && (runtime.milliseconds() - time) < moveTime) {
         }
         mecanumMoveNoScale(0,0,0);
     }
@@ -584,25 +584,30 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                 case STATE_ROTATE_BALL_OFF:
                     if (alliance == ALLIANCE_RED) { //forward to cryptobox
                         if (ballColor == BALL_RED) { //blue in front of us
-                            mecanumMoveNoScale(0, -0.5, 0); //move forward
+                            autonomousMove(0,-0.5,0,lf,-150,500,300); //move until lf reads -150 or 500ms
+                            //mecanumMoveNoScale(0, -0.5, 0); //move forward
                         } else { //blue in back of us
-                            mecanumMoveNoScale(0, 0.5, 0); //move backward
+                            autonomousMove(0,0.5,0,lf,150,500,300); //move until lf read 150 or 500ms
+                            //mecanumMoveNoScale(0, 0.5, 0); //move backward
                         }
                     } else if (alliance == ALLIANCE_BLUE) { //backward to cryptobox
                         if (ballColor == BALL_RED) { //red in back of us
-                            mecanumMoveNoScale(0, 0.5, 0); //move backward
+                            autonomousMove(0,0.5,0,lf,150,500,300); //move until lf reads 150 or 500ms
+                            //mecanumMoveNoScale(0, 0.5, 0); //move backward
                         } else { //red in front of us
-                            mecanumMoveNoScale(0, -0.5, 0); //move forward
+                            autonomousMove(0,-0.5,0,lf,-150,500,300); //move until lf read -150 or 500ms
+                            //mecanumMoveNoScale(0, -0.5, 0); //move forward
                         }
                     }
                     //telemetry.addData("Knocking Ball Off");
+                    /*
                     if ((runtime.milliseconds() - time) > 300) { //was 300
-                        mecanumMoveNoScale(0.0,0.0,0.0);
+                        mecanumMoveNoScale(0.0,0.0,0.0); */
                         recordState("After Ball");
                         state = STATE_MOVE_ARM_UP; //after a second were at cryptobox?
                         holdup(runtime);
                         try { Thread.sleep(500); } catch (InterruptedException e) {};
-                    }
+                    //}
                     break;
 
 
