@@ -323,6 +323,14 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         rb.setPower(v4);
     }
 
+    private void autonomousMove(double lsx,double lsy,double rsx,DcMotor motor,int target,int timeout,int moveTime) {
+        if (useEncoderMoves) {
+            mecanumEncoderMove(lsx,lsy,rsx,motor,target,timeout);
+        } else {
+            mecanumTimeMove(lsx,lsy,rsx,moveTime);
+        }
+    }
+
     private void mecanumTimeMove(double lsx,double lsy,double rsx,int moveTime) {
         mecanumMoveNoScale(lsx,lsy,rsx);
         time = runtime.milliseconds();
