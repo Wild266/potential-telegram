@@ -344,10 +344,16 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         boolean dir=(start<target); //true if we're moving up, false if moving down
         int current=start;
         mecanumMoveNoScale(lsx,lsy,rsx);
-        time = runtime.milliseconds()
+        time = runtime.milliseconds();
+        //writeToTeamLog("time="+time);
+        while(motor.getCurrentPosition()>-150) {
+
+        }
+        /*
         while (opModeIsActive() && ((dir && current<target) || (!dir && current>target)) && ((runtime.milliseconds()-time)<timeout)) {
             current=motor.getCurrentPosition();
-        }
+        }*/
+        writeToTeamLog("Dir="+dir+" Target="+target+" Position="+current+" opModeActive="+opModeIsActive()+" runtime="+runtime.milliseconds());
         mecanumMoveNoScale(0,0,0);
     }
 
@@ -585,18 +591,18 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                 case STATE_ROTATE_BALL_OFF:
                     if (alliance == ALLIANCE_RED) { //forward to cryptobox
                         if (ballColor == BALL_RED) { //blue in front of us
-                            autonomousMove(0,-0.5,0,lf,-150,500,300); //move until lf reads -150 or 500ms
+                            autonomousMove(0,-0.5,0,lf,300,1000,300); //move until lf reads -150 or 500ms
                             //mecanumMoveNoScale(0, -0.5, 0); //move forward
                         } else { //blue in back of us
-                            autonomousMove(0,0.5,0,lf,150,500,300); //move until lf read 150 or 500ms
+                            autonomousMove(0,0.5,0,lf,-300,1000,300); //move until lf read 150 or 500ms
                             //mecanumMoveNoScale(0, 0.5, 0); //move backward
                         }
                     } else if (alliance == ALLIANCE_BLUE) { //backward to cryptobox
                         if (ballColor == BALL_RED) { //red in back of us
-                            autonomousMove(0,0.5,0,lf,150,500,300); //move until lf reads 150 or 500ms
+                            autonomousMove(0,0.5,0,lf,-300,1000,300); //move until lf reads 150 or 500ms
                             //mecanumMoveNoScale(0, 0.5, 0); //move backward
                         } else { //red in front of us
-                            autonomousMove(0,-0.5,0,lf,-150,500,300); //move until lf read -150 or 500ms
+                            autonomousMove(0,-0.5,0,lf,300,1000,300); //move until lf read -150 or 500ms
                             //mecanumMoveNoScale(0, -0.5, 0); //move forward
                         }
                     }
