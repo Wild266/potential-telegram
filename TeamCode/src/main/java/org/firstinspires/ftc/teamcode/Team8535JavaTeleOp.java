@@ -83,8 +83,8 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private double relicClawSpeed = 0.5;
     private Servo vacuumReleaseServo = null;
     private Servo vacuumReleaseServo2 = null; //added
-    private double vacuumReleasePosition = 0.5;
-    private double vacuumReleasePosition2 = 0.5; //changed to 0.5 (why 0.7?)
+    private double vacuumReleasePosition = 1.0; //changed to 1.0 from 0.5 on on 2/10
+    private double vacuumReleasePosition2 = 1.0;
 
     private double vacuumReleaseSpeed = 3.0;
 
@@ -519,7 +519,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
 
                 if (vacuumReleaseServo != null) {
                     if (vacuumRelease1>0.09) {
-                        vacuumReleasePosition=0.0;
+                        vacuumReleasePosition=0.0; //flipper both of these on 2/10 (again)
                     } else {
                         vacuumReleasePosition=1.0;
                     }

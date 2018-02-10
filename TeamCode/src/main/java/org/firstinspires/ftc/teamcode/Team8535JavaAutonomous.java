@@ -162,8 +162,8 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     private Servo vacuumReleaseServo = null;
     private Servo vacuumReleaseServo2 = null; //added
 
-    private double vacuumReleasePosition = 0.5;
-    private double vacuumReleasePosition2 = 0.5;
+    private double vacuumReleasePosition = 1.0; //changed to 1.0 on 2/10 (to match teleop)
+    private double vacuumReleasePosition2 = 1.0;
 
     private double vacuumReleaseSpeed = 1.0;
 
@@ -333,8 +333,8 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
     private void mecanumTimeMove(double lsx,double lsy,double rsx,int moveTime) {
         mecanumMoveNoScale(lsx,lsy,rsx);
-        time = runtime.milliseconds();
-        while (opModeIsActive() && (runtime.milliseconds() - time) < moveTime) {
+        double startTime = runtime.milliseconds();
+        while (opModeIsActive() && (runtime.milliseconds() - startTime) < moveTime) {
         }
         mecanumMoveNoScale(0,0,0);
     }
@@ -344,18 +344,35 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         boolean dir=(start<target); //true if we're moving up, false if moving down
         int current=start;
         mecanumMoveNoScale(lsx,lsy,rsx);
-        time = runtime.milliseconds();
-        //writeToTeamLog("time="+time);
-        while(motor.getCurrentPosition()>-150) {
-
-        }
-        /*
-        while (opModeIsActive() && ((dir && current<target) || (!dir && current>target)) && ((runtime.milliseconds()-time)<timeout)) {
+        double startTime = runtime.milliseconds();
+        StringBuilder sb=new StringBuilder();
+        while (opModeIsActive() && ((dir && current<target) || (!dir && current>target)) && ((runtime.milliseconds()-startTime)<timeout)) {
             current=motor.getCurrentPosition();
-        }*/
-        writeToTeamLog("Dir="+dir+" Target="+target+" Position="+current+" opModeActive="+opModeIsActive()+" runtime="+runtime.milliseconds());
+            sb.append("Dir="+dir+" Target="+target+" Current="+current+" opModeActive="+opModeIsActive()+" runtime="+runtime.milliseconds()+" startTime="+startTime+"\n");
+        }
+        writeToTeamLog(sb.toString());
         mecanumMoveNoScale(0,0,0);
     }
+
+    /*
+
+    Beginning Run --------------
+Mon Feb 05 19:37:26 EST 2018
+Alliance=Blue
+Side=Left
+Beginning Run --------------
+Sat Feb 10 15:20:32 EST 2018
+Alliance=Blue
+Side=Left
+PosterSeen=RIGHT
+BallSeen=Red red=299 blue=72
+Before Ball:lf=0 rf=0 lb=0 rb=0
+Dir=false Target=-300 Current=-31 opModeActive=true runtime=2630.3190609999997 time=23.707450772
+After Ball:lf=-63 rf=-35 lb=-25 rb=-24
+After Move:lf=0 rf=0 lb=0 rb=0
+
+     */
+
 
     private void gyroTurn(int degrees,ElapsedTime runtime, double maxTime) {
         /*
@@ -591,18 +608,18 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                 case STATE_ROTATE_BALL_OFF:
                     if (alliance == ALLIANCE_RED) { //forward to cryptobox
                         if (ballColor == BALL_RED) { //blue in front of us
-                            autonomousMove(0,-0.5,0,lf,300,1000,300); //move until lf reads -150 or 500ms
+                            autonomousMove(0,-0.5,0,lf,150,1000,300); //move until lf reads -150 or 500ms
                             //mecanumMoveNoScale(0, -0.5, 0); //move forward
                         } else { //blue in back of us
-                            autonomousMove(0,0.5,0,lf,-300,1000,300); //move until lf read 150 or 500ms
+                            autonomousMove(0,0.5,0,lf,-150,1000,300); //move until lf read 150 or 500ms
                             //mecanumMoveNoScale(0, 0.5, 0); //move backward
                         }
                     } else if (alliance == ALLIANCE_BLUE) { //backward to cryptobox
                         if (ballColor == BALL_RED) { //red in back of us
-                            autonomousMove(0,0.5,0,lf,-300,1000,300); //move until lf reads 150 or 500ms
+                            autonomousMove(0,0.5,0,lf,-150,1000,300); //move until lf reads 150 or 500ms
                             //mecanumMoveNoScale(0, 0.5, 0); //move backward
                         } else { //red in front of us
-                            autonomousMove(0,-0.5,0,lf,300,1000,300); //move until lf read -150 or 500ms
+                            autonomousMove(0,-0.5,0,lf,150,1000,300); //move until lf read -150 or 500ms
                             //mecanumMoveNoScale(0, -0.5, 0); //move forward
                         }
                     }
@@ -629,9 +646,11 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                 case STATE_MOVING:
                     //should move by time, encoders, or inertial
                     if (alliance == ALLIANCE_RED) {
-                        mecanumMoveNoScale(0, -0.5, 0); //move forward
+                        autonomousMove(0,-0.5,0,lf,1500,2000,1800); //move until lf reads -150 or 500ms
+                        //mecanumMoveNoScale(0, -0.5, 0); //move forward
                     } else {
-                        mecanumMoveNoScale(0, 0.5, 0); //move backward
+                        autonomousMove(0,0.5,0,lf,-1500,2000,1800); //move until lf reads -150 or 500ms
+                        //mecanumMoveNoScale(0, 0.5, 0); //move backward
                     }
                     /*int moveTime = 2400;
                     if (alliance == ALLIANCE_BLUE && side == SIDE_RIGHT) {
@@ -642,9 +661,11 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     int moveTime = 1800;
                     //later remember to compensate for ball knocking move
                     telemetry.addData("Moving", "%s units", distMap.get(vuMark));
+                    /*
                     if ((runtime.milliseconds() - time) > moveTime) { //1600 goes to 2400
                         mecanumMoveNoScale(0.0,0.0,0.0);
                         recordState("After Move");
+                    */
                         if (needsExtra()) {
                             state = STATE_EXTRA_MOVE;
                         }else {
@@ -652,12 +673,13 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                         }
                         holdup(runtime);
                         try { Thread.sleep(500); } catch (InterruptedException e) {};
-                        time = runtime.milliseconds();
-                    }
+                        //time = runtime.milliseconds();
+                    //}
 
                     break;
 
                 case STATE_EXTRA_MOVE:
+                    //autonomousMove(-1,0,0,lf,???,2000,950); //need encoder data on this extra move
                     mecanumMoveNoScale(-1, 0, 0); //strafe left
                     if ((runtime.milliseconds() - time) > 950) { //was 850
                         mecanumMoveNoScale(0.0,0.0,0.0);
@@ -671,8 +693,10 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
                 case STATE_EXTRA_ROTATE:
                     if (alliance == ALLIANCE_BLUE) {
+                        //autonomousMove(0,0,1,lf,???,550,550); //need encoder data on this extra move
                         mecanumMoveNoScale(0, 0, 1); //rotate counter-clockwise
                     } else {
+                        //autonomousMove(0,0,-1,lf,???,550,505); //need encoder data on this extra move
                         mecanumMoveNoScale(0, 0, -1); //rotate clockwise
                     }
                     if ((runtime.milliseconds() - time) > 550) {
@@ -686,15 +710,19 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     break;
 
                 case STATE_MOVE_CLOSE:
-                    mecanumMoveNoScale(1, 0, 0); //move right
+                    //Note: the encoder counts should be relative to current position (due to extra moves)
+                    autonomousMove(1,0,0,lf,-1500,700,500); //need encoder data on this extra move
+                    //mecanumMoveNoScale(1, 0, 0); //move right
                     telemetry.addData("Moving Closer to Cryptobox", "");
+                    /*
                     if ((runtime.milliseconds() - time) > 500) { //1600 goes to 2400
                         mecanumMoveNoScale(0.0,0.0,0.0);
+                    */
                         recordState("After Move Close");
                         state = STATE_DUMPING_BLOCK; //after a second were at cryptobox?
                         holdup(runtime);
                         try { Thread.sleep(500); } catch (InterruptedException e) {};
-                    }
+                    //}
                     break;
 
                 case STATE_DUMPING_BLOCK:
@@ -706,42 +734,51 @@ public class Team8535JavaAutonomous extends LinearOpMode {
                     break;
 
                 case STATE_MOVE_BACK:
-                    mecanumMoveNoScale(-1, 0, 0); //move left
+                    autonomousMove(-1,0,0,lf,-1800,700,500); //need encoder data on this extra move
+                    //mecanumMoveNoScale(-1, 0, 0); //move left
                     telemetry.addData("Moving Closer to Cryptobox", "");
+                    /*
                     if ((runtime.milliseconds() - time) > 500) { //1600 goes to 2400
                         mecanumMoveNoScale(0.0,0.0,0.0);
+                    */
                         recordState("After Move Back");
                         state = STATE_MOVE_IN; //after a second were at cryptobox?
                         holdup(runtime);
                         try { Thread.sleep(500); } catch (InterruptedException e) {};
                         time = runtime.milliseconds();
-                    }
+                    //}
                     break;
 
                 case STATE_MOVE_IN:
-                    mecanumMoveNoScale(1, 0, 0); //move right
+                    autonomousMove(1,0,0,lf,-1500,700,500); //need encoder data on this extra move
+                    //mecanumMoveNoScale(1, 0, 0); //move right
                     telemetry.addData("Moving Closer to Cryptobox", "");
+                    /*
                     if ((runtime.milliseconds() - time) > 1000) { //was 500
                         mecanumMoveNoScale(0.0,0.0,0.0);
+                    */
                         recordState("After Move In");
                         state = STATE_MOVE_OUT; //after a second were at cryptobox?
                         holdup(runtime);
                         try { Thread.sleep(500); } catch (InterruptedException e) {};
                         time = runtime.milliseconds();
 
-                    }
+                    //}
                     break;
 
                 case STATE_MOVE_OUT:
-                    mecanumMoveNoScale(-0.75, 0, 0); //move more slowly left
+                    autonomousMove(-0.75,0,0,lf,-1800,700,500); //need encoder data on this extra move
+                    //mecanumMoveNoScale(-0.75, 0, 0); //move more slowly left
                     telemetry.addData("Moving Closer to Cryptobox", "");
+                    /*
                     if ((runtime.milliseconds() - time) > 500) { //1600 goes to 2400
                         mecanumMoveNoScale(0.0,0.0,0.0);
+                    */
                         recordState("After Move Out");
                         state = STATE_DONE; //after a second were at cryptobox?
                         holdup(runtime);
                         try { Thread.sleep(500); } catch (InterruptedException e) {};
-                    }
+                    //}
                     break;
             }
 
