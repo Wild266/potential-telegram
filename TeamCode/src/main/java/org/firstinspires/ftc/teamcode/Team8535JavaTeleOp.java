@@ -370,7 +370,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             boolean blockTiltDown = gamepad1.a;
 
             if (slowMode) {
-                speedFactor = 0.9; //was 0.75;
+                speedFactor = 0.8; //was 0.75; //was 0.9 Bill wants to change to 0.8 on 2/10 (not tested yet)
             } else {
                 speedFactor = 1.0;
             }
