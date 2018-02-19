@@ -114,6 +114,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private boolean vacuumRunning2 = false; //added
 
     private static boolean JOYSTICK_SCALING = true; //whether to scale joystick values by cubing value (more precision for small movements)
+    private static boolean TELE = false; //show telemetry
 
     //introduce methods which allow us to continue even when particular devices aren't found (by just not utilizing those devices)
 
@@ -318,21 +319,21 @@ public class Team8535JavaTeleOp extends LinearOpMode {
         }
 
         currentLoopTime = runtime.time();
-        curVac=vacuumMotor.getCurrentPosition();
-        curVac2=vacuumMotor2.getCurrentPosition();
+        //curVac=vacuumMotor.getCurrentPosition();
+        //curVac2=vacuumMotor2.getCurrentPosition();
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
             lastLoopTime = currentLoopTime; //the loop timing difference gives our actively stepping servos the time to use with their speed multipliers
-            lastVac=curVac;
-            lastVac2=curVac2;
+            //lastVac=curVac;
+            //lastVac2=curVac2;
             currentLoopTime = runtime.time();
-            curVac=vacuumMotor.getCurrentPosition();
-            curVac2=vacuumMotor2.getCurrentPosition();
-            double timedif=(currentLoopTime-lastLoopTime);
-            telemetry.addData("Vac1 Speed RPM",60.0*(curVac-lastVac)/timedif);
-            telemetry.addData("Vac2 Speed RPM",60.0*(curVac2-lastVac2)/timedif);
-            telemetry.addData("Loop Time (Secs)",timedif); //hopefully reasonable speed for movement determinations
+            //curVac=vacuumMotor.getCurrentPosition();
+            //curVac2=vacuumMotor2.getCurrentPosition();
+            //double timedif=(currentLoopTime-lastLoopTime);
+            //telemetry.addData("Vac1 Speed RPM",60.0*(curVac-lastVac)/timedif);
+            //telemetry.addData("Vac2 Speed RPM",60.0*(curVac2-lastVac2)/timedif);
+            //telemetry.addData("Loop Time (Secs)",timedif); //hopefully reasonable speed for movement determinations
 
             //translate some gamepad controls to variables
 
@@ -387,15 +388,15 @@ public class Team8535JavaTeleOp extends LinearOpMode {
             if (gripperLiftMotor != null) {
                 if (raiseLowerLift < -0.09/*-0.2*/) {
                     gripperLiftMotor.setPower(raiseLowerLift/*-1.0*/); //if trigger is positive, raise lift
-                    telemetry.addData("Gripper Lift", "Raising");
+                    if (TELE) telemetry.addData("Gripper Lift", "Raising");
                 } else if (raiseLowerLift > 0.09/*0.2*/) {
                     gripperLiftMotor.setPower(raiseLowerLift/*1.0*/); //if trigger is negative, lower lift
-                    telemetry.addData("Gripper Lift", "Lowering");
+                    if (TELE) telemetry.addData("Gripper Lift", "Lowering");
                 } else {
                     gripperLiftMotor.setPower(0.0); //this should do motor braking
-                    telemetry.addData("Gripper Lift", "Stopped");
+                    if (TELE) telemetry.addData("Gripper Lift", "Stopped");
                 }
-                telemetry.addData("Gripper Position",gripperLiftMotor.getCurrentPosition());
+                if (TELE) telemetry.addData("Gripper Position",gripperLiftMotor.getCurrentPosition());
 
                 if (toggleVacuumBoth) { //for dual toggle
                     toggleVacuum1 = true;
@@ -412,10 +413,10 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                         vacuumTime = runtime.time(); //to avoid self-toggle
                     }
                     if (vacuumRunning) {
-                        telemetry.addData("Vacuum1", "On");
+                        if (TELE) telemetry.addData("Vacuum1", "On");
                         vacuumMotor.setPower(1.0);
                     } else {
-                        telemetry.addData("Vacuum1", "Off");
+                        if (TELE) telemetry.addData("Vacuum1", "Off");
                         vacuumMotor.setPower(0.0);
                     }
                 }
@@ -431,10 +432,10 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                         vacuumTime2 = runtime.time(); //to avoid self-toggle
                     }
                     if (vacuumRunning2) {
-                        telemetry.addData("Vacuum2", "On");
+                        if (TELE) telemetry.addData("Vacuum2", "On");
                         vacuumMotor2.setPower(1.0);
                     } else {
-                        telemetry.addData("Vacuum2", "Off");
+                        if (TELE) telemetry.addData("Vacuum2", "Off");
                         vacuumMotor2.setPower(0.0);
                     }
                 }
@@ -458,7 +459,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                         if (relicLiftPosition < 0.0) relicLiftPosition = 0.0;
                     }
                     relicLiftServo.setPosition(relicLiftPosition);
-                    telemetry.addData("Relic Lift", relicLiftPosition);
+                    if (TELE) telemetry.addData("Relic Lift", relicLiftPosition);
                 }
 
                 if (armLiftServo != null) {
@@ -472,7 +473,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                         armLiftPosition=0.5;
                     }
                     armLiftServo.setPosition(armLiftPosition);
-                    telemetry.addData("Arm Lift", armLiftPosition);
+                    if (TELE) telemetry.addData("Arm Lift", armLiftPosition);
 
                 }
 
@@ -485,7 +486,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                         if (gripperTwistPosition < 0.0) gripperTwistPosition = 0.0;
                     }
                     gripperTwistServo.setPosition(gripperTwistPosition);
-                    telemetry.addData("Gripper Twist", gripperTwistPosition);
+                    if (TELE) telemetry.addData("Gripper Twist", gripperTwistPosition);
 
                 }
 
@@ -500,7 +501,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                         relicClawPosition=0.5;
                     }
                     relicClawServo.setPosition(relicClawPosition);
-                    telemetry.addData("Relic Claw", relicClawPosition);
+                    if (TELE) telemetry.addData("Relic Claw", relicClawPosition);
 
                 }
 
@@ -513,7 +514,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                         if (blockTiltPosition < 0.0) blockTiltPosition = 0.0;
                     }
                     blockTiltServo.setPosition(blockTiltPosition);
-                    telemetry.addData("Block Tilt", blockTiltPosition);
+                    if (TELE) telemetry.addData("Block Tilt", blockTiltPosition);
 
                 }
 
@@ -524,7 +525,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                         vacuumReleasePosition=1.0;
                     }
                     vacuumReleaseServo.setPosition(vacuumReleasePosition);
-                    telemetry.addData("Vacuum Release1", vacuumReleasePosition);
+                    if (TELE) telemetry.addData("Vacuum Release1", vacuumReleasePosition);
                 }
 
                 if (vacuumReleaseServo2 != null) {
@@ -534,7 +535,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                         vacuumReleasePosition2=1.0;
                     }
                     vacuumReleaseServo2.setPosition(vacuumReleasePosition2);
-                    telemetry.addData("Vacuum Release2", vacuumReleasePosition2);
+                    if (TELE) telemetry.addData("Vacuum Release2", vacuumReleasePosition2);
                 }
 
                 if (ballArmServo != null) {
@@ -548,30 +549,32 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                         ballArmPosition = 0.0; //probably want this for a continuous servo
                     }
                     ballArmServo.setPosition(ballArmPosition);
-                    telemetry.addData("Ball Arm", ballArmPosition);
+                    if (TELE) telemetry.addData("Ball Arm", ballArmPosition);
                 }
 
                 if (ballColorSensor != null)
-                    telemetry.addData("BallColor", "R=%d G=%d B=%d A=%d", ballColorSensor.red(), ballColorSensor.green(), ballColorSensor.blue(), ballColorSensor.alpha());
+                    if (TELE) telemetry.addData("BallColor", "R=%d G=%d B=%d A=%d", ballColorSensor.red(), ballColorSensor.green(), ballColorSensor.blue(), ballColorSensor.alpha());
 
                 if (bottomColorSensor != null)
-                    telemetry.addData("BottomColor", "R=%d G=%d B=%d A=%d", bottomColorSensor.red(), bottomColorSensor.green(), bottomColorSensor.blue(), bottomColorSensor.alpha());
+                    if (TELE) telemetry.addData("BottomColor", "R=%d G=%d B=%d A=%d", bottomColorSensor.red(), bottomColorSensor.green(), bottomColorSensor.blue(), bottomColorSensor.alpha());
 
+                /*
                 int lfpos = lf.getCurrentPosition(); //show positions to help with auto mode
                 int rfpos = rf.getCurrentPosition();
                 int lbpos = lb.getCurrentPosition();
                 int rbpos = rb.getCurrentPosition();
 
                 telemetry.addData("Positions", "lf=%d rf=%d lb=%d rb=%d", lfpos, rfpos, lbpos, rbpos);
+                */
                 if (gyro != null)
 
                 {
                     int heading = gyro.getHeading();
-                    telemetry.addData("Heading", "%3d degrees", heading);
+                    if (TELE) telemetry.addData("Heading", "%3d degrees", heading);
                 }
                 // Show the elapsed game time
-                telemetry.addData("Status", "Run Time: " + runtime.toString());
-                telemetry.update();
+                if (TELE) telemetry.addData("Status", "Run Time: " + runtime.toString());
+                if (TELE) telemetry.update();
             }
         }
     }
