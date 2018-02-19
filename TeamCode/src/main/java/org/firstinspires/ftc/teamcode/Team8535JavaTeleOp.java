@@ -89,7 +89,7 @@ public class Team8535JavaTeleOp extends LinearOpMode {
     private double vacuumReleaseSpeed = 3.0;
 
     private double relicLiftPosition = 1.0; //initial position (tune this)
-    private double relicLiftSpeed = 1.0;
+    private double relicLiftSpeed = 0.5;
     private double armLiftSpeed = 0.5;
 
     //Block Tilt
@@ -454,11 +454,12 @@ public class Team8535JavaTeleOp extends LinearOpMode {
                     if (raiseRelic) { //step it up
                         relicLiftPosition += relicLiftSpeed * (currentLoopTime - lastLoopTime);
                         if (relicLiftPosition > 1.0) relicLiftPosition = 1.0;
+                        relicLiftServo.setPosition(relicLiftPosition);
                     } else if (lowerRelic) { //step it down
                         relicLiftPosition -= relicLiftSpeed * (currentLoopTime - lastLoopTime);
                         if (relicLiftPosition < 0.0) relicLiftPosition = 0.0;
+                        relicLiftServo.setPosition(relicLiftPosition);
                     }
-                    relicLiftServo.setPosition(relicLiftPosition);
                     if (TELE) telemetry.addData("Relic Lift", relicLiftPosition);
                 }
 
