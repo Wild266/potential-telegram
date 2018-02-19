@@ -230,6 +230,8 @@ public class Team8535JavaAutonomous extends LinearOpMode {
     private String ballSeen="";
     private String posterSeen="";
 
+    private int currentLeft=0;
+
     public Team8535JavaAutonomous(int alliance,int side) {
         this.alliance=alliance;
         this.side=side;
@@ -331,6 +333,13 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         }
     }
 
+    private void autonomousRelativeMove(double lsx,double lsy,double rsx,DcMotor motor,int target,int timeout,int moveTime) {
+        if (useEncoderMoves) {
+            mecanumEncoderRelativeMove(lsx,lsy,rsx,motor,target,timeout);
+        } else {
+            mecanumTimeMove(lsx,lsy,rsx,moveTime);
+        }
+    }
     private void mecanumTimeMove(double lsx,double lsy,double rsx,int moveTime) {
         mecanumMoveNoScale(lsx,lsy,rsx);
         double startTime = runtime.milliseconds();
@@ -350,30 +359,27 @@ public class Team8535JavaAutonomous extends LinearOpMode {
         while (opModeIsActive() && ((dir && current<target) || (!dir && current>target)) && ((runtime.milliseconds()-startTime)<timeout)) {
             current=motor.getCurrentPosition();
         }
+        mecanumMoveNoScale(0,0,0);
         sb.append("Dir="+dir+" Target="+target+" Current="+current+" opModeActive="+opModeIsActive()+" runtime="+runtime.milliseconds()+" startTime="+startTime+"\n");
         writeToTeamLog(sb.toString());
-        mecanumMoveNoScale(0,0,0);
     }
 
-    /*
-
-    Beginning Run --------------
-Mon Feb 05 19:37:26 EST 2018
-Alliance=Blue
-Side=Left
-Beginning Run --------------
-Sat Feb 10 15:20:32 EST 2018
-Alliance=Blue
-Side=Left
-PosterSeen=RIGHT
-BallSeen=Red red=299 blue=72
-Before Ball:lf=0 rf=0 lb=0 rb=0
-Dir=false Target=-300 Current=-31 opModeActive=true runtime=2630.3190609999997 time=23.707450772
-After Ball:lf=-63 rf=-35 lb=-25 rb=-24
-After Move:lf=0 rf=0 lb=0 rb=0
-
-     */
-
+    private void mecanumEncoderRelativeMove(double lsx,double lsy,double rsx,DcMotor motor,int target,int timeout) {
+        int start=motor.getCurrentPosition();
+        target=target+start; //relative to current position
+        boolean dir=(start<target); //true if we're moving up, false if moving down
+        int current=start;
+        mecanumMoveNoScale(lsx,lsy,rsx);
+        double startTime = runtime.milliseconds();
+        StringBuilder sb=new StringBuilder();
+        sb.append("Dir="+dir+" Target="+target+" Current="+current+" opModeActive="+opModeIsActive()+" runtime="+runtime.milliseconds()+" startTime="+startTime+"\n");
+        while (opModeIsActive() && ((dir && current<target) || (!dir && current>target)) && ((runtime.milliseconds()-startTime)<timeout)) {
+            current=motor.getCurrentPosition();
+        }
+        mecanumMoveNoScale(0,0,0);
+        sb.append("Dir="+dir+" Target="+target+" Current="+current+" opModeActive="+opModeIsActive()+" runtime="+runtime.milliseconds()+" startTime="+startTime+"\n");
+        writeToTeamLog(sb.toString());
+    }
 
     private void gyroTurn(int degrees,ElapsedTime runtime, double maxTime) {
         /*
@@ -680,7 +686,7 @@ After Move:lf=0 rf=0 lb=0 rb=0
                     break;
 
                 case STATE_EXTRA_MOVE:
-                    autonomousMove(-1,0,0,lf,-2200,2500,950); //need encoder data on this extra move
+                    autonomousRelativeMove(-1,0,0,lf,-500,2500,950); //need encoder data on this extra move
                     //mecanumMoveNoScale(-1, 0, 0); //strafe left
                     /*
                     if ((runtime.milliseconds() - time) > 950) { //was 850
@@ -696,10 +702,10 @@ After Move:lf=0 rf=0 lb=0 rb=0
 
                 case STATE_EXTRA_ROTATE:
                     if (alliance == ALLIANCE_BLUE) {
-                        autonomousMove(0,0,1,lf,-1200,2000,550); //need encoder data on this extra move
+                        autonomousRelativeMove(0,0,1,lf,900,2000,550); //need encoder data on this extra move
                         //mecanumMoveNoScale(0, 0, 1); //rotate counter-clockwise
                     } else {
-                        autonomousMove(0,0,-1,lf,1200,2000,550); //need encoder data on this extra move
+                        autonomousRelativeMove(0,0,-1,lf,-900,2000,550); //need encoder data on this extra move
                         //mecanumMoveNoScale(0, 0, -1); //rotate clockwise
                     }
                     /*
@@ -716,7 +722,7 @@ After Move:lf=0 rf=0 lb=0 rb=0
 
                 case STATE_MOVE_CLOSE:
                     //Note: the encoder counts should be relative to current position (due to extra moves)
-                    autonomousMove(1,0,0,lf,-2000,700,500); //need encoder data on this extra move
+                    autonomousRelativeMove(1,0,0,lf,600,1700,500); //need encoder data on this extra move
                     //mecanumMoveNoScale(1, 0, 0); //move right
                     telemetry.addData("Moving Closer to Cryptobox", "");
                     /*
@@ -739,7 +745,7 @@ After Move:lf=0 rf=0 lb=0 rb=0
                     break;
 
                 case STATE_MOVE_BACK:
-                    autonomousMove(-1,0,0,lf,-1000,700,500); //need encoder data on this extra move
+                    autonomousRelativeMove(-1,0,0,lf,-600,1700,500); //need encoder data on this extra move
                     //mecanumMoveNoScale(-1, 0, 0); //move left
                     telemetry.addData("Moving Closer to Cryptobox", "");
                     /*
@@ -755,7 +761,7 @@ After Move:lf=0 rf=0 lb=0 rb=0
                     break;
 
                 case STATE_MOVE_IN:
-                    autonomousMove(1,0,0,lf,-2000,700,500); //need encoder data on this extra move
+                    autonomousRelativeMove(1,0,0,lf,600,1700,500); //need encoder data on this extra move
                     //mecanumMoveNoScale(1, 0, 0); //move right
                     telemetry.addData("Moving Closer to Cryptobox", "");
                     /*
@@ -772,7 +778,7 @@ After Move:lf=0 rf=0 lb=0 rb=0
                     break;
 
                 case STATE_MOVE_OUT:
-                    autonomousMove(-0.75,0,0,lf,-1300,700,500); //need encoder data on this extra move
+                    autonomousRelativeMove(-0.75,0,0,lf,-600,1700,500); //need encoder data on this extra move
                     //mecanumMoveNoScale(-0.75, 0, 0); //move more slowly left
                     telemetry.addData("Moving Closer to Cryptobox", "");
                     /*
