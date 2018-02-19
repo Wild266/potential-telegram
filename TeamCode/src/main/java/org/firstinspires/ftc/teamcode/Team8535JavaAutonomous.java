@@ -152,8 +152,8 @@ public class Team8535JavaAutonomous extends LinearOpMode {
 
     //Block Tilt
     private Servo blockTiltServo = null;
-    private double blockTiltPosition = 0.95;
-    private double blockDumpPosition = 0.35;
+    private double blockTiltPosition = 0.47; //was 0.95
+    private double blockDumpPosition = 0.25; //was 0.35
     private double blockTiltSpeed = 0.7;
 
     //Vacuum
@@ -739,7 +739,7 @@ After Move:lf=0 rf=0 lb=0 rb=0
                     break;
 
                 case STATE_MOVE_BACK:
-                    autonomousMove(-1,0,0,lf,-1300,700,500); //need encoder data on this extra move
+                    autonomousMove(-1,0,0,lf,-1000,700,500); //need encoder data on this extra move
                     //mecanumMoveNoScale(-1, 0, 0); //move left
                     telemetry.addData("Moving Closer to Cryptobox", "");
                     /*
